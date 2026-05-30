@@ -486,9 +486,12 @@ function preloadVideo() {
 // ==================== MEME_SCREEN ====================
 states.MEME_SCREEN = {
     activeVideo: null,
+    happinessInterval: null,
     enter: function() {
         switchScreen('screen-meme');
+        this.resetHappiness();
         this.renderMedia();
+        this.startHappinessAnimation();
     },
     render: function() {},
     exit: function() {
@@ -500,10 +503,68 @@ states.MEME_SCREEN = {
             this.activeVideo.load(); // Forces release of media resources
             this.activeVideo = null;
         }
+        // Stop happiness animation
+        if (this.happinessInterval) {
+            clearInterval(this.happinessInterval);
+            this.happinessInterval = null;
+        }
         // Clear the container
         var screen = $('screen-meme');
         var container = $q('.meme-container', screen);
         if (container) container.textContent = '';
+    },
+    resetHappiness: function() {
+        var screen = $('screen-meme');
+        var fill = $q('.meme-happiness-fill', screen);
+        var pct = $q('.meme-happiness-percent', screen);
+        var msg = $q('.meme-happiness-message', screen);
+        if (fill) fill.style.width = '0%';
+        if (pct) { pct.textContent = '0%'; pct.style.color = '#4ade80'; }
+        if (msg) msg.classList.add('hidden');
+    },
+    startHappinessAnimation: function() {
+        var screen = $('screen-meme');
+        var fill = $q('.meme-happiness-fill', screen);
+        var pct = $q('.meme-happiness-percent', screen);
+        var msg = $q('.meme-happiness-message', screen);
+        var level = 0;
+        var self = this;
+        this.happinessInterval = trackInterval(setInterval(function() {
+            level += 2;
+            if (level > 120) {
+                clearInterval(self.happinessInterval);
+                self.happinessInterval = null;
+                return;
+            }
+            var displayLevel = Math.min(level, 100);
+            if (fill) fill.style.width = displayLevel + '%';
+            if (pct) pct.textContent = displayLevel + '%';
+            // Color transitions
+            if (level <= 60) {
+                // Green phase
+                if (fill) fill.style.background = '#4ade80';
+                if (pct) pct.style.color = '#4ade80';
+            } else if (level <= 80) {
+                // Orange phase
+                if (fill) fill.style.background = '#fb923c';
+                if (pct) pct.style.color = '#fb923c';
+            } else if (level <= 95) {
+                // Red phase
+                if (fill) fill.style.background = '#ef4444';
+                if (pct) pct.style.color = '#ef4444';
+            } else {
+                // Dark red / overload phase
+                if (fill) fill.style.background = '#991b1b';
+                if (pct) pct.style.color = '#991b1b';
+                if (pct) pct.textContent = '100%';
+                if (fill) fill.style.width = '100%';
+            }
+            // Show overload message at 100+
+            if (level >= 105 && msg) {
+                msg.classList.remove('hidden');
+                msg.textContent = 'HAPPINESS OVERLOADED';
+            }
+        }, 80));
     },
     renderMedia: function() {
         var screen = $('screen-meme');

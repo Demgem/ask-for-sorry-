@@ -631,9 +631,48 @@ h2 {
 }
 
 /* --- Meme Screen --- */
-.meme-title {
-    color: var(--gold-light);
+.meme-happiness-section {
     margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.meme-happiness-label {
+    color: var(--gold-light);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.meme-happiness-percent {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+    transition: color 0.5s ease;
+}
+
+.meme-happiness-bar {
+    height: 10px;
+    margin: 0.5rem 0 1rem;
+}
+
+.meme-happiness-fill {
+    transition: width 0.3s ease, background 0.5s ease;
+    background: var(--green);
+}
+
+.meme-happiness-message {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ef4444;
+    margin-top: 0.75rem;
+    animation: overloadPulse 0.6s ease-in-out infinite;
+}
+
+@keyframes overloadPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.05); }
+}
 }
 
 .meme-container {
