@@ -1,0 +1,7 @@
+{
+  "task_id": "task-refactor-maaf-karo",
+  "task_description": "Complete refactor of Operation Maaf Karo 1/5 Footiya from ad-hoc screen switching to production-ready state-based architecture with premium dark luxury design, fixing all bugs, broken flows, and missing features.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null
+}
