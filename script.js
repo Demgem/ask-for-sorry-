@@ -474,24 +474,46 @@ states.MEME_SCREEN = {
         container.textContent = '';
         if (state.mediaDetected === 'mp4' || state.mediaDetected === 'webm') {
             var video = document.createElement('video');
+            // Mobile browsers require these as HTML attributes for autoplay
+            video.setAttribute('autoplay', '');
+            video.setAttribute('muted', '');
+            video.setAttribute('loop', '');
+            video.setAttribute('playsinline', '');
+            video.setAttribute('webkit-playsinline', '');
+            video.setAttribute('preload', 'auto');
+            // Also set as properties for cross-browser support
             video.autoplay = true;
             video.muted = true;
             video.loop = true;
             video.playsInline = true;
-            video.setAttribute('playsinline', '');
+            video.defaultMuted = true;
             video.style.maxWidth = '100%';
+            video.style.width = '100%';
             video.style.borderRadius = '12px';
+            video.style.display = 'block';
             var source = document.createElement('source');
             source.src = 'images/final-meme.' + state.mediaDetected;
             source.type = 'video/' + state.mediaDetected;
             video.appendChild(source);
             container.appendChild(video);
+            // Explicit play() call for mobile - must be after DOM insertion
+            video.load();
+            var playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(function() {
+                    // If autoplay blocked, add tap-to-play overlay
+                    video.muted = true;
+                    video.play().catch(function() {});
+                });
+            }
         } else if (state.mediaDetected === 'gif' || state.mediaDetected === 'jpg') {
             var img = document.createElement('img');
             img.src = 'images/final-meme.' + state.mediaDetected;
             img.alt = 'Meme for 1/5 Footiya';
             img.style.maxWidth = '100%';
+            img.style.width = '100%';
             img.style.borderRadius = '12px';
+            img.style.display = 'block';
             container.appendChild(img);
         }
     }
@@ -538,36 +560,19 @@ function detectMedia() {
             return;
         }
         var fmt = formats[idx];
-        if (fmt === 'mp4' || fmt === 'webm') {
-            var video = document.createElement('video');
-            video.preload = 'metadata';
-            var source = document.createElement('source');
-            source.src = 'images/final-meme.' + fmt;
-            source.type = 'video/' + fmt;
-            video.appendChild(source);
-            video.addEventListener('loadedmetadata', function() {
+        var url = 'images/final-meme.' + fmt;
+        // Use fetch HEAD to check existence - works reliably on all platforms
+        fetch(url, { method: 'HEAD' }).then(function(response) {
+            if (response.ok) {
                 state.mediaDetected = fmt;
-            });
-            video.addEventListener('error', function() {
+            } else {
                 idx++;
                 tryNext();
-            });
-            source.addEventListener('error', function() {
-                idx++;
-                tryNext();
-            });
-            video.load();
-        } else {
-            var img = new Image();
-            img.src = 'images/final-meme.' + fmt;
-            img.addEventListener('load', function() {
-                state.mediaDetected = fmt;
-            });
-            img.addEventListener('error', function() {
-                idx++;
-                tryNext();
-            });
-        }
+            }
+        }).catch(function() {
+            idx++;
+            tryNext();
+        });
     }
     tryNext();
 }
