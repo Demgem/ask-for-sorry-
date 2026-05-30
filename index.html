@@ -17,7 +17,8 @@
     <!-- SCREEN 1: Fingerprint Scanner -->
     <div class="screen active" id="screen-fingerprint">
         <div class="glass-card fingerprint-card">
-            <div class="attention-badge">ATTENTION REQUIRED</div>
+            <div class="attention-badge">&#x1F6A8; Attention Required &#x1F6A8;</div>
+            <p class="fingerprint-text">Touch Screen To Begin Scan</p>
             <div class="fingerprint-scanner">
                 <div class="fingerprint-icon">
                     <svg viewBox="0 0 100 100" class="fingerprint-svg">
@@ -31,7 +32,6 @@
                     <div class="scan-line"></div>
                 </div>
             </div>
-            <p class="fingerprint-text">Place your finger to verify identity</p>
             <p class="tap-hint">Tap anywhere to proceed</p>
         </div>
     </div>
@@ -50,13 +50,13 @@
     <!-- SCREEN 3: Anger Detection Result -->
     <div class="screen" id="screen-anger-detect">
         <div class="glass-card anger-card">
-            <div class="danger-badge">DANGER DETECTED</div>
+            <div class="danger-badge">&#x26A0;&#xFE0F; DANGER DETECTED &#x26A0;&#xFE0F;</div>
             <div class="anger-meter-container">
-                <p class="anger-label">Anger Level</p>
+                <p class="anger-label">Current Anger Level</p>
                 <div class="anger-meter">
                     <div class="anger-fill" id="anger-fill-detect" style="width: 10%;"></div>
                 </div>
-                <p class="anger-value" id="anger-value-detect">0.5/5 Footiya</p>
+                <p class="anger-value" id="anger-value-detect">0.5 / 5 Footiya</p>
             </div>
             <button class="btn btn-primary" id="btn-continue-detect">CONTINUE</button>
         </div>
@@ -66,11 +66,10 @@
     <div class="screen" id="screen-apology">
         <div class="glass-card apology-card">
             <div class="emoji-large">&#x1F97A;</div>
-            <h1 class="title-nickname">1/5 Footiya</h1>
-            <p class="apology-text">Mujhe maaf kardo please, galti ho gayi mujhse. Aage se kabhi nahi karunga. Promise!</p>
+            <p class="apology-text">Tum apne pyaare,<br>masoom,<br>innocent,<br>cute,<br>bechare bhaiya ko<br>maaf nahi karogi?</p>
             <div class="btn-group">
-                <button class="btn btn-yes" id="btn-yes">YES</button>
-                <button class="btn btn-no" id="btn-no">NO</button>
+                <button class="btn btn-yes" id="btn-yes">YES &#x2764;&#xFE0F;</button>
+                <button class="btn btn-no" id="btn-no">NO &#x1F612;</button>
             </div>
         </div>
     </div>
@@ -82,8 +81,8 @@
             <p class="yes-question" id="yes-question">Thoda sa maaf kiya?</p>
             <p class="yes-level" id="yes-level">Level 1/10</p>
             <div class="btn-group">
-                <button class="btn btn-yes" id="btn-yes-confirm">YES</button>
-                <button class="btn btn-no" id="btn-yes-deny">NO</button>
+                <button class="btn btn-yes" id="btn-yes-confirm">YES &#x2764;&#xFE0F;</button>
+                <button class="btn btn-no" id="btn-yes-deny">NO &#x1F612;</button>
             </div>
         </div>
     </div>
@@ -110,8 +109,8 @@
                 <p class="anger-value" id="anger-value-no">0.5/5</p>
             </div>
             <div class="btn-group">
-                <button class="btn btn-yes" id="btn-no-accept">YES (Maaf)</button>
-                <button class="btn btn-no btn-no-escape" id="btn-no-reject">NO</button>
+                <button class="btn btn-yes" id="btn-no-accept">YES (Maaf) &#x2764;&#xFE0F;</button>
+                <button class="btn btn-no btn-no-escape" id="btn-no-reject">NO &#x1F612;</button>
             </div>
         </div>
     </div>
@@ -131,11 +130,11 @@
     <div class="screen" id="screen-advanced">
         <div class="glass-card advanced-card">
             <div class="emoji-large">&#x1F914;</div>
-            <h2>Come on 1/5 Footiya</h2>
-            <p class="advanced-text">Think about it properly...</p>
+            <h2>Come on 1/5 Footiya.</h2>
+            <p class="advanced-text">Bhaiya itne bhi bure nahi hain.</p>
             <div class="btn-group btn-group-vertical">
-                <button class="btn btn-yes" id="btn-bhaiya-good">YES BHAIYA IS NOT BAD</button>
-                <button class="btn btn-no" id="btn-bhaiya-bad">NO BHAIYA IS BAD</button>
+                <button class="btn btn-yes" id="btn-bhaiya-good">YES BHAIYA IS NOT BAD &#x2764;&#xFE0F;</button>
+                <button class="btn btn-no" id="btn-bhaiya-bad">NO BHAIYA IS BAD &#x1F612;</button>
             </div>
         </div>
     </div>
@@ -144,8 +143,9 @@
     <div class="screen" id="screen-heartbreak">
         <div class="glass-card heartbreak-card">
             <div class="emoji-large">&#x1F494;</div>
+            <p class="heartbreak-text">It hurts.<br>Who would think 1/5 Footiya would say this?</p>
             <h2>Did you forget?</h2>
-            <p class="heartbreak-text">Who is your big brother? The one who always protects you?</p>
+            <p class="heartbreak-text">Who is big brother?<br>Big brother is big brother.<br>At least listen to the apology.</p>
             <div class="btn-group btn-group-vertical">
                 <button class="btn btn-yes" id="btn-okay-continue">OKAY CONTINUE</button>
                 <button class="btn btn-no" id="btn-still-bad">NO STILL BAD</button>
@@ -178,11 +178,13 @@
     <div class="screen" id="screen-celebration">
         <div class="confetti-container" id="confetti-container"></div>
         <div class="glass-card celebration-card">
-            <div class="emoji-large">&#x1F389;</div>
-            <h1 class="celebration-title">Thank You 1/5 Footiya!</h1>
-            <p class="celebration-text">Case Closed Forever</p>
+            <p class="celebration-emojis">&#x1F389; &#x1F38A; &#x2B50; &#x2764;&#xFE0F;</p>
+            <h1 class="celebration-title">Thank You 1/5 Footiya &#x2764;&#xFE0F;</h1>
+            <p class="celebration-text">Apology Accepted.</p>
+            <p class="celebration-rules">No more fights on this issue.<br>No more teasing bhaiya about this incident.<br>No more using this against your brother in future arguments.</p>
+            <p class="celebration-case">Case Closed Forever &#x1F91D;</p>
             <div class="celebration-stars" id="celebration-stars"></div>
-            <button class="btn btn-primary" id="btn-to-shayari">NEXT</button>
+            <button class="btn btn-primary" id="btn-to-shayari">OKAY I ACCEPT</button>
         </div>
     </div>
 
@@ -192,16 +194,16 @@
             <h2 class="shayari-title">Special Poetry for You</h2>
             <div class="shayari-grid">
                 <div class="shayari-card">
-                    <p class="shayari-text">Rishton ka ye bandhan aisa,<br>Bhai behen ka pyaar jaisa.<br>Tujhpe naraz main kaise rahu,<br>Tu hai meri jaan kaisa.</p>
+                    <p class="shayari-text">No matter how much we fight,<br>No matter who was wrong,<br>At the end of the day,<br>Our bond stays strong.</p>
                 </div>
                 <div class="shayari-card">
-                    <p class="shayari-text">Galtiyon pe parda daal de tu,<br>Maafi de aur chain se reh.<br>Tera bhai hai, dhyan rakhega,<br>Bas tera saath zindagi bhar de.</p>
+                    <p class="shayari-text">Childhood memories,<br>Countless fights,<br>Yet somehow,<br>You make life brighter.</p>
                 </div>
                 <div class="shayari-card">
-                    <p class="shayari-text">Behen ho tum meri sabse pyaari,<br>Tumse hi ghar mein raunak saari.<br>Maaf kardo ye galti meri,<br>Promise nahi hogi dobara ye haari.</p>
+                    <p class="shayari-text">Sister by relation,<br>Friend by choice,<br>Partner in crime forever,<br>And loudest voice.</p>
                 </div>
                 <div class="shayari-card shayari-funny">
-                    <p class="shayari-text">1/5 Footiya sun zara,<br>Bhaiya se itna gussa kara?<br>TV remote bhi nahi dunga,<br>Agar maafi nahi mili ab tak toh sara!</p>
+                    <p class="shayari-text">1/5 Footiya is smart,<br>1/5 Footiya is great,<br><br>But still takes forever<br>To decide what to eat &#x1F604;</p>
                     <span class="funny-badge">FUNNY</span>
                 </div>
             </div>
@@ -224,13 +226,14 @@
     <div class="screen" id="screen-final-record">
         <div class="glass-card final-card">
             <div class="emoji-large">&#x2705;</div>
-            <h1>Record Saved!</h1>
+            <h1>APOLOGY RECORDED SUCCESSFULLY</h1>
+            <p class="final-label">Brother Happiness Level</p>
+            <p class="final-status">MAXIMUM</p>
             <div class="progress-bar-container final-progress">
                 <div class="progress-bar progress-full" id="final-progress-bar"></div>
             </div>
             <p class="final-percent">100%</p>
-            <p class="final-message">Thank you little girl</p>
-            <p class="final-sub">1/5 Footiya has officially forgiven Bhaiya!</p>
+            <p class="final-message">Thank you little girl &#x2764;&#xFE0F;<br>Mission Complete.</p>
             <button class="btn btn-primary" id="btn-to-meme">NEXT</button>
         </div>
     </div>
@@ -238,7 +241,7 @@
     <!-- MEME SCREEN -->
     <div class="screen" id="screen-meme">
         <div class="glass-card meme-card">
-            <h2>One Last Thing...</h2>
+            <h2>Reward For Forgiving Bhaiya &#x1F60E;</h2>
             <div class="meme-container" id="meme-container">
                 <div class="meme-placeholder">
                     <span>&#x1F3AC;</span>

@@ -44,55 +44,54 @@
     ];
 
     var COMPLIMENTS = [
-        'You are the sweetest 1/5 Footiya in the world!',
-        '1/5 Footiya, you have a heart of gold!',
-        'The world is better because 1/5 Footiya exists!',
-        '1/5 Footiya, your smile can light up any room!',
-        'No one is as awesome as 1/5 Footiya!',
-        '1/5 Footiya, you deserve all the happiness!',
-        'Being siblings with 1/5 Footiya is a blessing!',
-        '1/5 Footiya is officially the best sister!',
-        'If kindness had a name, it would be 1/5 Footiya!',
-        '1/5 Footiya, you make everything better!',
-        'The universe created 1/5 Footiya for greatness!',
-        '1/5 Footiya has the cutest angry face ever!'
+        '\u{1F3C6} 1/5 Footiya is cutest.',
+        '\u{1F9E0} Scientists proved 1/5 Footiya is always right.',
+        '\u{1F451} Best sister detected.',
+        '\u{2B50} Government approved awesome sister.',
+        '\u{1F389} 1/5 Footiya wins every argument.',
+        '\u{1F4C8} Cute level increasing.',
+        '\u{1F680} Sister power level maximum.',
+        '\u{1F48E} Rare legendary sister found.',
+        '\u{1F602} Breaking News: 1/5 Footiya remains undefeated.',
+        '\u{1F396}\u{FE0F} Certified Best Sister.'
     ];
 
     var NO_MESSAGES = [
-        'Really? You are not going to forgive?',
-        'Think again 1/5 Footiya...',
-        'Bhaiya is getting sad...',
-        'Are you really that angry 1/5 Footiya?',
-        'Come on, give bhaiya one chance!',
-        'Please 1/5 Footiya, reconsider!',
-        'Your bhaiya is crying inside!',
-        'The NO button does not want to be clicked!',
-        '1/5 Footiya, have mercy!',
-        'Even the button is running away from you!',
-        'Please please please 1/5 Footiya!',
-        'Last chance to be nice...'
+        '\u{1F62D} You would do this to your brother?',
+        '\u{1F614} Think again 1/5 Footiya.',
+        '\u{1F6AB} Error 404: Rejection not found.',
+        '\u{1F91D} Sibling bond too strong.',
+        '\u{1F605} That button seems broken.',
+        '\u{1F97A} Come on yaar.',
+        '\u{1F4E2} Brother sadness detected.',
+        '\u{26A0}\u{FE0F} Forgiveness required.',
+        '\u{1F62D} You would do this to your brother?',
+        '\u{1F614} Think again 1/5 Footiya.',
+        '\u{1F6AB} Error 404: Rejection not found.',
+        '\u{1F91D} Sibling bond too strong.'
     ];
 
     var ADVANCED_LOADING_MESSAGES = [
-        'Activating Advanced Protocol...',
-        'Loading Emergency Bhaiya Defense...',
-        'Searching for mercy in 1/5 Footiya...',
-        'Running Last Resort Algorithm...'
+        'Normal method failed.',
+        'Deploying Advanced Brother Protocol.',
+        'Increasing apology power.',
+        'Loading emergency forgiveness system.'
     ];
 
     var SUCCESS_LOADING_MESSAGES = [
-        'Recording official forgiveness...',
-        'Updating sibling database...',
-        'Notifying happiness department...',
-        'Generating celebration...',
-        'Sealing the deal forever...'
+        'Verifying forgiveness...',
+        'Checking acceptance status...',
+        'Calculating happiness...',
+        'Mission Passed.',
+        'Apology Accepted Successfully.'
     ];
 
     var FINAL_LOADING_MESSAGES = [
-        'Creating permanent record...',
-        'Encrypting forgiveness certificate...',
-        'Saving to cloud of love...',
-        'Finalizing 1/5 Footiya record...'
+        'Recording forgiveness...',
+        'Updating brother happiness...',
+        'Calculating celebration level...',
+        'Syncing sibling database...',
+        'Processing happiness...'
     ];
 
     // ==================== UTILITY FUNCTIONS ====================
@@ -282,7 +281,7 @@
                 var val = getElement('anger-value-detect');
                 if (val) {
                     // Security: textContent used
-                    val.textContent = '0.5/5 Footiya';
+                    val.textContent = '0.5 / 5 Footiya';
                 }
             }
         );
