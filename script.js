@@ -474,19 +474,19 @@ states.MEME_SCREEN = {
         container.textContent = '';
         if (state.mediaDetected === 'mp4' || state.mediaDetected === 'webm') {
             var video = document.createElement('video');
-            // Mobile browsers require these as HTML attributes for autoplay
+            // Set attributes for playback
             video.setAttribute('autoplay', '');
-            video.setAttribute('muted', '');
             video.setAttribute('loop', '');
             video.setAttribute('playsinline', '');
             video.setAttribute('webkit-playsinline', '');
             video.setAttribute('preload', 'auto');
-            // Also set as properties for cross-browser support
+            video.setAttribute('controls', '');
+            // Properties
             video.autoplay = true;
-            video.muted = true;
             video.loop = true;
             video.playsInline = true;
-            video.defaultMuted = true;
+            video.controls = true;
+            video.muted = false;
             video.style.maxWidth = '100%';
             video.style.width = '100%';
             video.style.borderRadius = '12px';
@@ -496,14 +496,17 @@ states.MEME_SCREEN = {
             source.type = 'video/' + state.mediaDetected;
             video.appendChild(source);
             container.appendChild(video);
-            // Explicit play() call for mobile - must be after DOM insertion
+            // Try to play with audio (works because user just clicked NEXT button)
             video.load();
             var playPromise = video.play();
             if (playPromise !== undefined) {
                 playPromise.catch(function() {
-                    // If autoplay blocked, add tap-to-play overlay
+                    // If browser blocks unmuted autoplay, start muted then unmute
                     video.muted = true;
-                    video.play().catch(function() {});
+                    video.play().then(function() {
+                        // Successfully playing muted, unmute after short delay
+                        video.muted = false;
+                    }).catch(function() {});
                 });
             }
         } else if (state.mediaDetected === 'gif' || state.mediaDetected === 'jpg') {
