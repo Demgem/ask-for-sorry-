@@ -136,11 +136,90 @@ function transition(stateName) {
 
 // ==================== SCAN_SCREEN ====================
 states.SCAN_SCREEN = {
+    holdProgress: 0,
+    isHolding: false,
+    holdInterval: null,
+    decayInterval: null,
+    messageIndex: 0,
     enter: function() {
         switchScreen('screen-scan');
+        this.holdProgress = 0;
+        this.isHolding = false;
+        this.updateDisplay();
     },
     render: function() {},
-    exit: function() {}
+    exit: function() {
+        this.stopHold();
+        this.stopDecay();
+    },
+    updateDisplay: function() {
+        var screen = $('screen-scan');
+        var fill = $q('.scan-hold-fill', screen);
+        var pct = $q('.scan-hold-percent', screen);
+        if (fill) fill.style.width = this.holdProgress + '%';
+        if (pct) pct.textContent = Math.round(this.holdProgress) + '%';
+    },
+    updateMessage: function() {
+        var screen = $('screen-scan');
+        var msgEl = $q('.scan-hold-message', screen);
+        if (msgEl) {
+            msgEl.textContent = SCAN_MESSAGES[this.messageIndex % SCAN_MESSAGES.length];
+            this.messageIndex++;
+        }
+    },
+    startHold: function() {
+        if (this.isHolding) return;
+        this.isHolding = true;
+        this.stopDecay();
+        var self = this;
+        var msgCounter = 0;
+        this.holdInterval = setInterval(function() {
+            self.holdProgress += 2;
+            msgCounter++;
+            // Update message every 500ms (every 10 ticks at 50ms interval)
+            if (msgCounter % 10 === 0) {
+                self.updateMessage();
+            }
+            if (self.holdProgress >= 100) {
+                self.holdProgress = 100;
+                self.updateDisplay();
+                self.stopHold();
+                // Transition to anger scan
+                transition('ANGER_SCAN');
+                return;
+            }
+            self.updateDisplay();
+        }, 50);
+    },
+    stopHold: function() {
+        this.isHolding = false;
+        if (this.holdInterval) {
+            clearInterval(this.holdInterval);
+            this.holdInterval = null;
+        }
+    },
+    startDecay: function() {
+        if (this.holdProgress <= 0) return;
+        var self = this;
+        this.decayInterval = setInterval(function() {
+            self.holdProgress -= 1;
+            if (self.holdProgress <= 0) {
+                self.holdProgress = 0;
+                self.stopDecay();
+                // Clear message when back to 0
+                var screen = $('screen-scan');
+                var msgEl = $q('.scan-hold-message', screen);
+                if (msgEl) msgEl.textContent = '';
+            }
+            self.updateDisplay();
+        }, 30);
+    },
+    stopDecay: function() {
+        if (this.decayInterval) {
+            clearInterval(this.decayInterval);
+            this.decayInterval = null;
+        }
+    }
 };
 
 // ==================== ANGER_SCAN ====================
@@ -776,12 +855,45 @@ function createParticles() {
 
 // ==================== EVENT LISTENERS ====================
 function initEvents() {
-    // SCAN_SCREEN: tap anywhere
+    // SCAN_SCREEN: hold to fill
     var scanScreen = $('screen-scan');
     if (scanScreen) {
-        scanScreen.addEventListener('click', function() {
+        // Mouse events (desktop)
+        scanScreen.addEventListener('mousedown', function(e) {
             if (state.currentScreen === 'SCAN_SCREEN') {
-                transition('ANGER_SCAN');
+                e.preventDefault();
+                states.SCAN_SCREEN.startHold();
+            }
+        });
+        scanScreen.addEventListener('mouseup', function() {
+            if (state.currentScreen === 'SCAN_SCREEN') {
+                states.SCAN_SCREEN.stopHold();
+                states.SCAN_SCREEN.startDecay();
+            }
+        });
+        scanScreen.addEventListener('mouseleave', function() {
+            if (state.currentScreen === 'SCAN_SCREEN') {
+                states.SCAN_SCREEN.stopHold();
+                states.SCAN_SCREEN.startDecay();
+            }
+        });
+        // Touch events (mobile)
+        scanScreen.addEventListener('touchstart', function(e) {
+            if (state.currentScreen === 'SCAN_SCREEN') {
+                e.preventDefault();
+                states.SCAN_SCREEN.startHold();
+            }
+        });
+        scanScreen.addEventListener('touchend', function() {
+            if (state.currentScreen === 'SCAN_SCREEN') {
+                states.SCAN_SCREEN.stopHold();
+                states.SCAN_SCREEN.startDecay();
+            }
+        });
+        scanScreen.addEventListener('touchcancel', function() {
+            if (state.currentScreen === 'SCAN_SCREEN') {
+                states.SCAN_SCREEN.stopHold();
+                states.SCAN_SCREEN.startDecay();
             }
         });
     }
