@@ -1,0 +1,49 @@
+{
+  "id": "FEAT-001",
+  "type": "refactor",
+  "description": "Complete rewrite of all three files (index.html, style.css, script.js) to implement state-based architecture, fix all bugs, add missing features, and apply the premium dark luxury design system. This is a full production-ready refactor of the existing codebase.",
+  "status": "in_progress",
+  "steps": [
+    "STEP 1 - Rewrite script.js with state-based architecture: Create a centralized StateManager with states: SCAN_SCREEN, ANGER_SCAN, MAIN_APOLOGY, YES_FLOW, NO_FLOW, ADVANCED_BROTHER_PROTOCOL, SUCCESS_SCREEN, SHAYARI_SCREEN, RECORD_SCREEN, MEME_SCREEN, MEMORY_SCREEN, CASE_CLOSED_SCREEN. Each state must have enter(), render(), exit() methods. No screen should directly manipulate another screen. App state must track: yesCount, noCount, angerLevel, lastCompliment, lastRejectionMessage, currentScreen, mediaDetected, memoryGalleryDetected.",
+    "STEP 2 - Fix YES flow: 10 levels with questions (Thoda sa maaf kiya?, Pakka?, Sach mein?, 100% sure?, No takebacks?, Still sure?, Very sure?, Absolutely sure?, Officially?, Final confirmation?). After EVERY Yes: show RANDOM (not sequential) compliment card that never repeats the previous compliment, then proceed to next level. Compliments must include: '1/5 Footiya is cutest', 'Scientists proved 1/5 Footiya is always right', 'Best Sister Detected', 'Government Approved Awesome Sister', 'Rare Legendary Sister Found', 'Breaking News: 1/5 Footiya Wins Again'.",
+    "STEP 3 - Fix NO flow: ALWAYS show BOTH YES and NO buttons (never remove choice). After every No: increase anger level, show RANDOM rejection message (never repeat last message), keep displaying YES and NO buttons. Anger levels: 0.5, 1.5, 2.5, 3.5, 4.5. Color progression: Green, Yellow, Orange, Red. Rejection messages must be random not sequential: 'You would do this to your brother?', 'Think again 1/5 Footiya.', 'Error 404: Rejection not found.', 'Sibling bond too strong.', 'That button seems broken.', 'Brother sadness detected.', 'Come on yaar.'",
+    "STEP 4 - Fix NO button escape behavior: Desktop - button runs away from mouse cursor with smooth animation, stays inside viewport. Mobile - button jumps away from touch area. Must reset position correctly when re-entering NO flow screen.",
+    "STEP 5 - Fix Advanced Brother Protocol: Trigger at noCount >= 12 (not > 12). Show loading: 'Normal Method Failed. Deploying Advanced Brother Protocol. Increasing Apology Power.' Then show: 'Come on 1/5 Footiya. Bhaiya itne bhi bure nahi hain.' with YES/NO buttons. If NO again: show 'It hurts. Did you forget? Who is big brother? Big brother is big brother.' with CONTINUE and NO STILL BAD buttons. If NO STILL BAD: show portal animation with text 'Teleporting 1/5 Footiya...' then restart from fingerprint scanner.",
+    "STEP 6 - Fix Anger Scan screen: Loading messages must be exactly: 'Detecting 1/5 Footiya...', 'Analyzing Anger Level...', 'Checking Forgiveness Database...', 'Activating Brother Apology Mode...', 'Loading Cute Sister Protocol...' Duration 2-4 seconds. Then show: DANGER DETECTED with 'Current Anger Level: 0.5 / 5' and Continue button.",
+    "STEP 7 - Implement Smart Media System: On app init, detect if images/final-meme.mp4, .webm, .gif, or .jpg exists (priority: MP4, WEBM, GIF, JPG). Detect if images/memories/ directory has memory1.jpg through memory5.jpg. Store detection results in state. Final flow: If meme exists show Meme Screen, if gallery exists show Memory Gallery, if neither exists directly show CASE CLOSED FOREVER screen. Never show empty screens.",
+    "STEP 8 - Add CASE CLOSED SCREEN as final endpoint: Shows 'Mission Successful. Thank You 1/5 Footiya. CASE CLOSED FOREVER' with handshake emoji. This is always the final screen - all paths end here.",
+    "STEP 9 - Add Test Mode: Press T key to instantly jump to Success Screen, bypassing all earlier screens. For debugging purposes only.",
+    "STEP 10 - Rewrite index.html: Update all screen containers to match the state architecture. Add Inter font from Google Fonts. Update CSP to allow fonts.googleapis.com and fonts.gstatic.com. Ensure all screens have proper semantic structure. No inline JavaScript. All event handling via script.js addEventListener.",
+    "STEP 11 - Rewrite style.css with premium dark luxury theme: Background must be deep navy/indigo/purple gradient (NOT bright pink/green). Accent color: soft gold. Cards: glassmorphism with dark tinted glass. Typography: Inter font. Animations: smooth, premium, subtle. Visual inspiration: Apple, Linear, Stripe, Arc Browser aesthetic. AVOID: hot pink, generic AI look, bright cartoon colors, romantic aesthetics. Specific colors: background navy (#0a0e27, #1a1a3e, #2d1b69), accent gold (#d4a574, #e8c87a), glass cards with dark tint (rgba(15, 15, 35, 0.7)), subtle borders (rgba(212, 165, 116, 0.2)).",
+    "STEP 12 - Security hardening: No eval(), no inline JavaScript, no unsafe innerHTML (use textContent or safe DOM creation), use addEventListener exclusively. CSP meta tag allowing self, Google Fonts, and unsafe-inline for styles only. No cookies, no tracking, no analytics, no user data collection, no API keys, no backend."
+  ],
+  "acceptance_criteria": [
+    "Running node --check script.js passes with no syntax errors",
+    "grep -c 'eval(' script.js returns 0",
+    "grep -c 'onclick' index.html returns 0 (no inline handlers)",
+    "State machine with enter/render/exit pattern is implemented for all 12 states",
+    "Pressing T key triggers test mode jumping to success screen",
+    "Smart media detection conditionally shows/hides meme and gallery screens",
+    "NO button has escape behavior on both desktop (mousemove) and mobile (touchstart)",
+    "Anger levels progress through 0.5, 1.5, 2.5, 3.5, 4.5 with color changes",
+    "Advanced protocol triggers at noCount >= 12",
+    "All rejection messages and compliments use random selection (not sequential)",
+    "CASE CLOSED screen exists as final endpoint",
+    "Design uses dark navy/indigo/purple background with gold accents (no bright pink/green gradients)",
+    "Inter font is loaded from Google Fonts CDN",
+    "Nickname '1/5 Footiya' is used consistently throughout"
+  ],
+  "verification": [
+    "Run: node --check /projects/sandbox/ask-for-sorry-/script.js",
+    "Run: grep -c 'eval(' /projects/sandbox/ask-for-sorry-/script.js (expect 0)",
+    "Run: grep -c 'onclick' /projects/sandbox/ask-for-sorry-/index.html (expect 0)",
+    "Run: grep -c 'enter\\|render\\|exit' /projects/sandbox/ask-for-sorry-/script.js (expect multiple matches for state methods)",
+    "Run: grep -c 'addEventListener' /projects/sandbox/ask-for-sorry-/script.js (expect 10+)",
+    "Run: grep 'keydown' /projects/sandbox/ask-for-sorry-/script.js (expect T key handler)",
+    "Run: grep '0a0e27\\|1a1a3e\\|2d1b69\\|navy\\|indigo' /projects/sandbox/ask-for-sorry-/style.css (expect dark theme colors)",
+    "Run: grep 'Inter' /projects/sandbox/ask-for-sorry-/style.css (expect Inter font usage)",
+    "Run: grep 'CASE_CLOSED' /projects/sandbox/ask-for-sorry-/script.js (expect case closed state)"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

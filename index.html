@@ -3,269 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Security: Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
-    <title>Operation Maaf Karo 1/5 Footiya</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self';">
+    <title>Operation Maaf Karo - 1/5 Footiya</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Animated Background Elements -->
-    <div class="bg-gradient"></div>
-    <div class="floating-stars" id="floating-stars"></div>
-    <div class="clouds" id="clouds"></div>
+    <!-- Background particles -->
+    <div id="bg-particles" class="bg-particles"></div>
 
-    <!-- SCREEN 1: Fingerprint Scanner -->
-    <div class="screen active" id="screen-fingerprint">
-        <div class="glass-card fingerprint-card">
-            <div class="attention-badge">&#x1F6A8; Attention Required &#x1F6A8;</div>
-            <p class="fingerprint-text">Touch Screen To Begin Scan</p>
-            <div class="fingerprint-scanner">
-                <div class="fingerprint-icon">
-                    <svg viewBox="0 0 100 100" class="fingerprint-svg">
-                        <circle cx="50" cy="50" r="45" class="scan-ring"/>
-                        <path d="M50 20 C30 20 20 35 20 50 C20 65 30 80 50 80" class="fp-line"/>
-                        <path d="M50 25 C35 25 27 37 27 50 C27 63 35 75 50 75" class="fp-line"/>
-                        <path d="M50 30 C38 30 33 40 33 50 C33 60 38 70 50 70" class="fp-line"/>
-                        <path d="M50 35 C42 35 38 42 38 50 C38 58 42 65 50 65" class="fp-line"/>
-                        <path d="M50 40 C45 40 43 45 43 50 C43 55 45 60 50 60" class="fp-line"/>
-                    </svg>
-                    <div class="scan-line"></div>
+    <!-- Screen: SCAN_SCREEN -->
+    <div id="screen-scan" class="screen">
+        <div class="screen-content">
+            <div class="badge badge-warning">Attention Required</div>
+            <h1 class="scan-title">Touch Screen To Begin Scan</h1>
+            <div class="fingerprint-container">
+                <svg class="fingerprint-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <g class="fingerprint-lines" stroke="rgba(212, 165, 116, 0.4)" stroke-width="1.5" fill="none">
+                        <path d="M100 30 C60 30 40 60 40 100 C40 140 60 170 100 170 C140 170 160 140 160 100 C160 60 140 30 100 30"/>
+                        <path d="M100 45 C70 45 55 70 55 100 C55 130 70 155 100 155 C130 155 145 130 145 100 C145 70 130 45 100 45"/>
+                        <path d="M100 60 C80 60 70 78 70 100 C70 122 80 140 100 140 C120 140 130 122 130 100 C130 78 120 60 100 60"/>
+                        <path d="M100 75 C88 75 82 86 82 100 C82 114 88 125 100 125 C112 125 118 114 118 100 C118 86 112 75 100 75"/>
+                        <path d="M100 88 C94 88 91 93 91 100 C91 107 94 112 100 112 C106 112 109 107 109 100 C109 93 106 88 100 88"/>
+                    </g>
+                    <rect class="scan-line" x="35" y="0" width="130" height="2" fill="rgba(212, 165, 116, 0.8)" rx="1"/>
+                </svg>
+            </div>
+            <p class="hint-text">Tap anywhere to proceed</p>
+        </div>
+    </div>
+
+    <!-- Screen: ANGER_SCAN -->
+    <div id="screen-anger-scan" class="screen">
+        <div class="screen-content">
+            <div class="scan-loading-container">
+                <h2 class="scan-status-text"></h2>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill"></div>
                 </div>
+                <p class="scan-percentage">0%</p>
             </div>
-            <p class="tap-hint">Tap anywhere to proceed</p>
-        </div>
-    </div>
-
-    <!-- SCREEN 2: Loading / Scanning -->
-    <div class="screen" id="screen-loading">
-        <div class="glass-card loading-card">
-            <div class="loading-spinner"></div>
-            <p class="loading-message" id="loading-message">Initializing...</p>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="loading-progress"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SCREEN 3: Anger Detection Result -->
-    <div class="screen" id="screen-anger-detect">
-        <div class="glass-card anger-card">
-            <div class="danger-badge">&#x26A0;&#xFE0F; DANGER DETECTED &#x26A0;&#xFE0F;</div>
-            <div class="anger-meter-container">
-                <p class="anger-label">Current Anger Level</p>
+            <div class="scan-result-container hidden">
+                <div class="badge badge-danger">DANGER DETECTED</div>
+                <h2 class="anger-result-title">Current Anger Level: 0.5 / 5</h2>
                 <div class="anger-meter">
-                    <div class="anger-fill" id="anger-fill-detect" style="width: 10%;"></div>
+                    <div class="anger-meter-fill" style="width: 10%"></div>
                 </div>
-                <p class="anger-value" id="anger-value-detect">0.5 / 5 Footiya</p>
-            </div>
-            <button class="btn btn-primary" id="btn-continue-detect">CONTINUE</button>
-        </div>
-    </div>
-
-    <!-- MAIN APOLOGY SCREEN -->
-    <div class="screen" id="screen-apology">
-        <div class="glass-card apology-card">
-            <div class="emoji-large">&#x1F97A;</div>
-            <h1 class="title-nickname">1/5 Footiya</h1>
-            <p class="apology-text">Tum apne pyaare,<br>masoom,<br>innocent,<br>cute,<br>bechare bhaiya ko<br>maaf nahi karogi?</p>
-            <div class="btn-group">
-                <button class="btn btn-yes" id="btn-yes">YES &#x2764;&#xFE0F;</button>
-                <button class="btn btn-no" id="btn-no">NO &#x1F612;</button>
+                <button class="btn btn-primary" id="btn-anger-continue">Continue</button>
             </div>
         </div>
     </div>
 
-    <!-- YES FLOW SCREEN -->
-    <div class="screen" id="screen-yes-flow">
-        <div class="glass-card yes-card">
-            <div class="emoji-large">&#x1F60A;</div>
-            <p class="yes-question" id="yes-question">Thoda sa maaf kiya?</p>
-            <p class="yes-level" id="yes-level">Level 1/10</p>
-            <div class="btn-group">
-                <button class="btn btn-yes" id="btn-yes-confirm">YES &#x2764;&#xFE0F;</button>
-                <button class="btn btn-no" id="btn-yes-deny">NO &#x1F612;</button>
+    <!-- Screen: MAIN_APOLOGY -->
+    <div id="screen-main-apology" class="screen">
+        <div class="screen-content">
+            <h1 class="main-title">1/5 Footiya &#128149;</h1>
+            <div class="card glass-card">
+                <p class="apology-text">Tum apne pyaare, masoom, cute, innocent, bechare bhaiya ko maaf nahi karogi?</p>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-yes" id="btn-main-yes">YES</button>
+                <button class="btn btn-no" id="btn-main-no">NO</button>
             </div>
         </div>
     </div>
 
-    <!-- COMPLIMENT CARD -->
-    <div class="screen" id="screen-compliment">
-        <div class="glass-card compliment-card">
-            <div class="sparkle-container" id="sparkles"></div>
-            <div class="emoji-large">&#x2728;</div>
-            <p class="compliment-text" id="compliment-text">You are the best 1/5 Footiya!</p>
+    <!-- Screen: YES_FLOW -->
+    <div id="screen-yes-flow" class="screen">
+        <div class="screen-content">
+            <h2 class="yes-flow-title">1/5 Footiya</h2>
+            <div class="card glass-card">
+                <p class="yes-flow-question"></p>
+            </div>
+            <div class="compliment-card hidden">
+                <p class="compliment-text"></p>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-yes" id="btn-yes-flow-yes">YES</button>
+                <button class="btn btn-no" id="btn-yes-flow-no">NO</button>
+            </div>
+            <div class="progress-indicator">
+                <span class="progress-label"></span>
+            </div>
         </div>
     </div>
 
-    <!-- NO FLOW SCREEN (Anger Rising) -->
-    <div class="screen" id="screen-no-flow">
-        <div class="glass-card no-card">
-            <div class="emoji-large" id="no-emoji">&#x1F620;</div>
-            <p class="no-message" id="no-message">Are you sure?</p>
-            <div class="anger-meter-container">
-                <p class="anger-label">Anger Level</p>
+    <!-- Screen: NO_FLOW -->
+    <div id="screen-no-flow" class="screen">
+        <div class="screen-content">
+            <h2 class="no-flow-title">1/5 Footiya</h2>
+            <div class="anger-display">
+                <div class="anger-level-badge"></div>
                 <div class="anger-meter">
-                    <div class="anger-fill" id="anger-fill-no"></div>
+                    <div class="anger-meter-fill"></div>
                 </div>
-                <p class="anger-value" id="anger-value-no">0.5/5</p>
             </div>
-            <div class="btn-group">
-                <button class="btn btn-yes" id="btn-no-accept">YES (Maaf) &#x2764;&#xFE0F;</button>
-                <button class="btn btn-no btn-no-escape" id="btn-no-reject">NO &#x1F612;</button>
+            <div class="card glass-card">
+                <p class="rejection-message"></p>
             </div>
-        </div>
-    </div>
-
-    <!-- ADVANCED PROTOCOL LOADING -->
-    <div class="screen" id="screen-advanced-loading">
-        <div class="glass-card loading-card">
-            <div class="loading-spinner"></div>
-            <p class="loading-message" id="advanced-loading-message">Activating Advanced Protocol...</p>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="advanced-loading-progress"></div>
+            <div class="button-group no-flow-buttons">
+                <button class="btn btn-yes" id="btn-no-flow-yes">YES</button>
+                <button class="btn btn-no" id="btn-no-flow-no">NO</button>
             </div>
         </div>
     </div>
 
-    <!-- ADVANCED PROTOCOL SCREEN -->
-    <div class="screen" id="screen-advanced">
-        <div class="glass-card advanced-card">
-            <div class="emoji-large">&#x1F914;</div>
-            <h2>Come on 1/5 Footiya.</h2>
-            <p class="advanced-text">Bhaiya itne bhi bure nahi hain.</p>
-            <div class="btn-group btn-group-vertical">
-                <button class="btn btn-yes" id="btn-bhaiya-good">YES BHAIYA IS NOT BAD &#x2764;&#xFE0F;</button>
-                <button class="btn btn-no" id="btn-bhaiya-bad">NO BHAIYA IS BAD &#x1F612;</button>
+    <!-- Screen: ADVANCED_BROTHER_PROTOCOL -->
+    <div id="screen-advanced-protocol" class="screen">
+        <div class="screen-content">
+            <div class="protocol-loading hidden">
+                <h2 class="protocol-loading-text"></h2>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+            <div class="protocol-main hidden">
+                <div class="badge badge-warning">Advanced Brother Protocol</div>
+                <div class="card glass-card">
+                    <p class="protocol-message"></p>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-yes" id="btn-protocol-yes">YES</button>
+                    <button class="btn btn-no" id="btn-protocol-no">NO</button>
+                </div>
+            </div>
+            <div class="protocol-heartbreak hidden">
+                <div class="card glass-card">
+                    <p class="heartbreak-message"></p>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" id="btn-protocol-continue">CONTINUE</button>
+                    <button class="btn btn-no" id="btn-protocol-still-bad">NO STILL BAD</button>
+                </div>
+            </div>
+            <div class="protocol-portal hidden">
+                <div class="portal-animation"></div>
+                <p class="portal-text">Teleporting 1/5 Footiya...</p>
             </div>
         </div>
     </div>
 
-    <!-- HEARTBREAK SCREEN -->
-    <div class="screen" id="screen-heartbreak">
-        <div class="glass-card heartbreak-card">
-            <div class="emoji-large">&#x1F494;</div>
-            <p class="heartbreak-text">It hurts.<br>Who would think 1/5 Footiya would say this?</p>
-            <h2>Did you forget?</h2>
-            <p class="heartbreak-text">Who is big brother?<br>Big brother is big brother.<br>At least listen to the apology.</p>
-            <div class="btn-group btn-group-vertical">
-                <button class="btn btn-yes" id="btn-okay-continue">OKAY CONTINUE</button>
-                <button class="btn btn-no" id="btn-still-bad">NO STILL BAD</button>
+    <!-- Screen: SUCCESS_SCREEN -->
+    <div id="screen-success" class="screen">
+        <div class="screen-content">
+            <div class="success-loading hidden">
+                <h2 class="success-loading-text"></h2>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+            <div class="success-celebration hidden">
+                <div class="confetti-container"></div>
+                <h1 class="success-title">Thank You 1/5 Footiya</h1>
+                <div class="card glass-card success-card">
+                    <p class="success-line">&#10003; Apology Accepted.</p>
+                    <p class="success-line">&#10003; No more fights on this issue.</p>
+                    <p class="success-line">&#10003; No more teasing bhaiya about this incident.</p>
+                    <p class="success-line">&#10003; No more using this against your brother in future arguments.</p>
+                    <p class="success-line success-final">&#128274; Case Closed Forever</p>
+                </div>
+                <button class="btn btn-primary" id="btn-success-accept">Okay I Accept</button>
             </div>
         </div>
     </div>
 
-    <!-- PORTAL ANIMATION SCREEN -->
-    <div class="screen" id="screen-portal">
-        <div class="portal-container">
-            <div class="portal-ring"></div>
-            <div class="portal-ring"></div>
-            <div class="portal-ring"></div>
-            <p class="portal-text">Restarting...</p>
-        </div>
-    </div>
-
-    <!-- SUCCESS LOADING SCREEN -->
-    <div class="screen" id="screen-success-loading">
-        <div class="glass-card loading-card">
-            <div class="loading-spinner"></div>
-            <p class="loading-message" id="success-loading-message">Processing forgiveness...</p>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="success-loading-progress"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- CELEBRATION SCREEN -->
-    <div class="screen" id="screen-celebration">
-        <div class="confetti-container" id="confetti-container"></div>
-        <div class="glass-card celebration-card">
-            <p class="celebration-emojis">&#x1F389; &#x1F38A; &#x2B50; &#x2764;&#xFE0F;</p>
-            <h1 class="celebration-title">Thank You 1/5 Footiya &#x2764;&#xFE0F;</h1>
-            <p class="celebration-text">Apology Accepted.</p>
-            <p class="celebration-rules">No more fights on this issue.<br>No more teasing bhaiya about this incident.<br>No more using this against your brother in future arguments.</p>
-            <p class="celebration-case">Case Closed Forever &#x1F91D;</p>
-            <div class="celebration-stars" id="celebration-stars"></div>
-            <button class="btn btn-primary" id="btn-to-shayari">OKAY I ACCEPT</button>
-        </div>
-    </div>
-
-    <!-- SHAYARI SCREEN -->
-    <div class="screen" id="screen-shayari">
-        <div class="glass-card shayari-card-container">
-            <h2 class="shayari-title">Special Poetry for You</h2>
+    <!-- Screen: SHAYARI_SCREEN -->
+    <div id="screen-shayari" class="screen">
+        <div class="screen-content shayari-content">
+            <h2 class="shayari-title">For You, 1/5 Footiya</h2>
             <div class="shayari-grid">
-                <div class="shayari-card">
-                    <p class="shayari-text">No matter how much we fight,<br>No matter who was wrong,<br>At the end of the day,<br>Our bond stays strong.</p>
+                <div class="card glass-card shayari-card">
+                    <p class="shayari-verse">No matter how much we fight,<br>No matter who was wrong,<br>At the end of the day,<br>Our bond stays strong.</p>
                 </div>
-                <div class="shayari-card">
-                    <p class="shayari-text">Childhood memories,<br>Countless fights,<br>Yet somehow,<br>You make life brighter.</p>
+                <div class="card glass-card shayari-card">
+                    <p class="shayari-verse">Childhood memories,<br>Countless fights,<br>Yet somehow,<br>You make life brighter.</p>
                 </div>
-                <div class="shayari-card">
-                    <p class="shayari-text">Sister by relation,<br>Friend by choice,<br>Partner in crime forever,<br>And loudest voice.</p>
+                <div class="card glass-card shayari-card">
+                    <p class="shayari-verse">Sister by relation,<br>Friend by choice,<br>Partner in crime forever,<br>And loudest voice.</p>
                 </div>
-                <div class="shayari-card shayari-funny">
-                    <p class="shayari-text">1/5 Footiya is smart,<br>1/5 Footiya is great,<br><br>But still takes forever<br>To decide what to eat &#x1F604;</p>
-                    <span class="funny-badge">FUNNY</span>
+                <div class="card glass-card shayari-card">
+                    <div class="badge badge-funny">&#128514; Funny</div>
+                    <p class="shayari-verse">1/5 Footiya is smart,<br>1/5 Footiya is great,<br>But still takes forever<br>To decide what to eat</p>
                 </div>
             </div>
-            <button class="btn btn-primary" id="btn-confirm-record">CONFIRM RECORD</button>
+            <button class="btn btn-primary" id="btn-shayari-next">Confirm Record</button>
         </div>
     </div>
 
-    <!-- FINAL RECORD LOADING -->
-    <div class="screen" id="screen-final-loading">
-        <div class="glass-card loading-card">
-            <div class="loading-spinner"></div>
-            <p class="loading-message" id="final-loading-message">Recording forgiveness...</p>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="final-loading-progress"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FINAL RECORD SCREEN -->
-    <div class="screen" id="screen-final-record">
-        <div class="glass-card final-card">
-            <div class="emoji-large">&#x2705;</div>
-            <h1>APOLOGY RECORDED SUCCESSFULLY</h1>
-            <p class="final-label">Brother Happiness Level</p>
-            <p class="final-status">MAXIMUM</p>
-            <div class="progress-bar-container final-progress">
-                <div class="progress-bar progress-full" id="final-progress-bar"></div>
-            </div>
-            <p class="final-percent">100%</p>
-            <p class="final-message">Thank you little girl &#x2764;&#xFE0F;<br>Mission Complete.</p>
-            <button class="btn btn-primary" id="btn-to-meme">NEXT</button>
-        </div>
-    </div>
-
-    <!-- MEME SCREEN -->
-    <div class="screen" id="screen-meme">
-        <div class="glass-card meme-card">
-            <h2>Reward For Forgiving Bhaiya &#x1F60E;</h2>
-            <div class="meme-container" id="meme-container">
-                <div class="meme-placeholder">
-                    <span>&#x1F3AC;</span>
-                    <p>Meme Loading...</p>
+    <!-- Screen: RECORD_SCREEN -->
+    <div id="screen-record" class="screen">
+        <div class="screen-content">
+            <div class="record-loading hidden">
+                <h2 class="record-loading-text"></h2>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill"></div>
                 </div>
             </div>
-            <button class="btn btn-primary" id="btn-to-gallery">NEXT</button>
-        </div>
-    </div>
-
-    <!-- MEMORY GALLERY -->
-    <div class="screen" id="screen-gallery">
-        <div class="glass-card gallery-card">
-            <h2>Memory Gallery</h2>
-            <p class="gallery-subtitle">Our Best Moments - 1/5 Footiya Edition</p>
-            <div class="gallery-grid" id="gallery-grid">
-                <!-- Gallery items will be inserted by JS -->
+            <div class="record-result hidden">
+                <div class="badge badge-success">APOLOGY RECORDED SUCCESSFULLY</div>
+                <h2 class="record-title">Brother Happiness Level: MAXIMUM</h2>
+                <div class="progress-bar-container happiness-bar">
+                    <div class="progress-bar-fill"></div>
+                </div>
+                <p class="happiness-percentage">100%</p>
+                <button class="btn btn-primary" id="btn-record-next">NEXT</button>
             </div>
-            <button class="btn btn-primary" id="btn-restart">START OVER</button>
         </div>
     </div>
 
-    <!-- Security: All JavaScript loaded externally, no inline scripts -->
+    <!-- Screen: MEME_SCREEN -->
+    <div id="screen-meme" class="screen">
+        <div class="screen-content">
+            <h2 class="meme-title">A Little Something for 1/5 Footiya</h2>
+            <div class="meme-container"></div>
+            <button class="btn btn-primary" id="btn-meme-next">NEXT</button>
+        </div>
+    </div>
+
+    <!-- Screen: MEMORY_SCREEN -->
+    <div id="screen-memory" class="screen">
+        <div class="screen-content">
+            <h2 class="memory-title">Our Memories, 1/5 Footiya</h2>
+            <div class="memory-grid"></div>
+            <button class="btn btn-primary" id="btn-memory-next">NEXT</button>
+        </div>
+    </div>
+
+    <!-- Screen: CASE_CLOSED_SCREEN -->
+    <div id="screen-case-closed" class="screen">
+        <div class="screen-content">
+            <div class="case-closed-container">
+                <h1 class="case-closed-title">Mission Successful.</h1>
+                <h2 class="case-closed-subtitle">Thank You 1/5 Footiya</h2>
+                <div class="card glass-card case-closed-card">
+                    <p class="case-closed-text">&#129309; CASE CLOSED FOREVER &#129309;</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

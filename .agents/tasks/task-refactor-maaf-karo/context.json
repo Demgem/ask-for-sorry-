@@ -1,0 +1,22 @@
+{
+  "project_type": "Static HTML/CSS/JS website - sibling apology simulator",
+  "language": "HTML, CSS, JavaScript (vanilla, no frameworks)",
+  "build_system": "None - pure static files, GitHub Pages deployment",
+  "test_framework": "None - manual browser testing, structural validation via grep/checks",
+  "build_command": "N/A - no build step required",
+  "test_command": "node --check script.js (syntax validation)",
+  "verification_instructions": "1. Verify index.html, style.css, script.js exist. 2. Run node --check script.js for syntax. 3. Grep for no eval(), no inline handlers. 4. Verify CSP meta tag. 5. Verify Inter font loading. 6. Verify state machine pattern with enter/render/exit. 7. Verify T key test mode. 8. Verify smart media detection logic.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "No setup needed. Clone repo and open index.html in a browser.",
+  "environment_constraints": "INTEGRATIONS_ONLY network - no external packages installable. Cannot load external fonts at runtime in sandbox testing (but app will load them on GitHub Pages). Use node --check for JS syntax validation only.",
+  "contribution_requirements": "Deploy to GitHub Pages. No Node.js, React, Next.js, or backend. Must work by opening index.html directly. Use Inter font from Google Fonts CDN (will work on GitHub Pages). Security: no eval(), no inline JS, textContent over innerHTML, addEventListener only.",
+  "key_patterns": "Single page application with screen transitions. State machine architecture with centralized state. Each screen state has enter(), render(), exit() methods. Premium dark luxury glassmorphism UI. Mobile-first responsive.",
+  "relevant_files": [
+    "index.html",
+    "style.css",
+    "script.js",
+    "README.md",
+    "images/.gitkeep"
+  ],
+  "directory_structure": "Root contains index.html, style.css, script.js, README.md. images/ folder for optional meme and memory gallery photos."
+}

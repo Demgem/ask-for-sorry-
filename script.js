@@ -1,714 +1,266 @@
-/* ============================================
-   Operation Maaf Karo 1/5 Footiya - Script
-   Security: No eval(), no inline handlers,
-   all events via addEventListener.
-   No cookies, tracking, analytics, or API keys.
-   ============================================ */
+/* Security: No dynamic code execution, no inline handlers, addEventListener only.
+   No cookies, tracking, analytics, or API keys. IIFE strict mode. */
+(function() {
+'use strict';
 
-(function () {
-    'use strict';
+// ==================== APP STATE ====================
+var state = {
+    yesCount: 0,
+    noCount: 0,
+    angerLevel: 0.5,
+    lastCompliment: null,
+    lastRejectionMessage: null,
+    currentScreen: 'SCAN_SCREEN',
+    mediaDetected: null,
+    memoryGalleryDetected: false
+};
 
-    // Security: Strict mode enabled, IIFE to avoid global scope pollution
+// ==================== CONSTANTS ====================
+var YES_QUESTIONS = [
+    'Thoda sa maaf kiya?', 'Pakka?', 'Sach mein?', '100% sure?',
+    'No takebacks?', 'Still sure?', 'Very sure?', 'Absolutely sure?',
+    'Officially?', 'Final confirmation?'
+];
 
-    // ==================== STATE ====================
-    var state = {
-        currentScreen: 'screen-fingerprint',
-        yesLevel: 0,
-        noCount: 0,
-        angerLevel: 0.5,
-        complimentsShown: [],
-        loadingInterval: null,
-        miniConfettiTimeout: null,
-        rafPending: false
-    };
+var COMPLIMENTS = [
+    '1/5 Footiya is cutest.',
+    'Scientists proved 1/5 Footiya is always right.',
+    'Best Sister Detected.',
+    'Government Approved Awesome Sister.',
+    'Rare Legendary Sister Found.',
+    'Breaking News: 1/5 Footiya Wins Again.',
+    'Sister power level maximum.',
+    'Cute level increasing.',
+    '1/5 Footiya wins every argument.',
+    'Certified Best Sister.'
+];
 
-    // ==================== CONSTANTS ====================
-    var YES_QUESTIONS = [
-        'Thoda sa maaf kiya?',
-        'Pakka?',
-        'Sach mein?',
-        '100% sure?',
-        'No takebacks?',
-        'Still sure?',
-        'Very sure?',
-        'Absolutely sure?',
-        'Officially?',
-        'Final confirmation?'
-    ];
+var REJECTION_MESSAGES = [
+    'You would do this to your brother?',
+    'Think again 1/5 Footiya.',
+    'Error 404: Rejection not found.',
+    'Sibling bond too strong.',
+    'That button seems broken.',
+    'Brother sadness detected.',
+    'Come on yaar.',
+    'Forgiveness required.'
+];
 
-    var LOADING_MESSAGES = [
-        'Detecting 1/5 Footiya...',
-        'Scanning anger level...',
-        'Analyzing sibling damage...',
-        'Searching forgiveness database...',
-        'Activating Brother Apology Mode...',
-        'Loading Cute Sister Protocol...'
-    ];
+var SCAN_MESSAGES = [
+    'Detecting 1/5 Footiya...',
+    'Analyzing Anger Level...',
+    'Checking Forgiveness Database...',
+    'Activating Brother Apology Mode...',
+    'Loading Cute Sister Protocol...'
+];
 
-    var COMPLIMENTS = [
-        '\u{1F3C6} 1/5 Footiya is cutest.',
-        '\u{1F9E0} Scientists proved 1/5 Footiya is always right.',
-        '\u{1F451} Best sister detected.',
-        '\u{2B50} Government approved awesome sister.',
-        '\u{1F389} 1/5 Footiya wins every argument.',
-        '\u{1F4C8} Cute level increasing.',
-        '\u{1F680} Sister power level maximum.',
-        '\u{1F48E} Rare legendary sister found.',
-        '\u{1F602} Breaking News: 1/5 Footiya remains undefeated.',
-        '\u{1F396}\u{FE0F} Certified Best Sister.'
-    ];
+var SUCCESS_MESSAGES = [
+    'Verifying Forgiveness...',
+    'Checking Acceptance...',
+    'Calculating Happiness...',
+    'Mission Passed.'
+];
 
-    var NO_MESSAGES = [
-        '\u{1F62D} You would do this to your brother?',
-        '\u{1F614} Think again 1/5 Footiya.',
-        '\u{1F6AB} Error 404: Rejection not found.',
-        '\u{1F91D} Sibling bond too strong.',
-        '\u{1F605} That button seems broken.',
-        '\u{1F97A} Come on yaar.',
-        '\u{1F4E2} Brother sadness detected.',
-        '\u{26A0}\u{FE0F} Forgiveness required.',
-        '\u{1F494} Heart damage increasing.',
-        '\u{1F62C} Stubbornness level: expert.',
-        '\u{1F6A8} Critical brother alert!',
-        '\u{1F4A3} Apology system overloading.'
-    ];
+var RECORD_MESSAGES = [
+    'Recording Forgiveness...',
+    'Updating Brother Happiness...',
+    'Calculating Celebration Level...',
+    'Syncing Sibling Database...'
+];
 
-    var ADVANCED_LOADING_MESSAGES = [
-        'Normal method failed.',
-        'Deploying Advanced Brother Protocol.',
-        'Increasing apology power.',
-        'Loading emergency forgiveness system.'
-    ];
+var PROTOCOL_MESSAGES = [
+    'Normal Method Failed.',
+    'Deploying Advanced Brother Protocol.',
+    'Increasing Apology Power.'
+];
 
-    var SUCCESS_LOADING_MESSAGES = [
-        'Verifying forgiveness...',
-        'Checking acceptance status...',
-        'Calculating happiness...',
-        'Mission Passed.',
-        'Apology Accepted Successfully.'
-    ];
+var ANGER_LEVELS = [0.5, 1.5, 2.5, 3.5, 4.5];
 
-    var FINAL_LOADING_MESSAGES = [
-        'Recording forgiveness...',
-        'Updating brother happiness...',
-        'Calculating celebration level...',
-        'Syncing sibling database...',
-        'Processing happiness...'
-    ];
+// ==================== UTILITIES ====================
+var activeIntervals = [];
+var activeTimeouts = [];
 
-    // ==================== UTILITY FUNCTIONS ====================
+function clearAllTimers() {
+    activeIntervals.forEach(function(id) { clearInterval(id); });
+    activeTimeouts.forEach(function(id) { clearTimeout(id); });
+    activeIntervals = [];
+    activeTimeouts = [];
+}
 
-    function getElement(id) {
-        return document.getElementById(id);
+function trackInterval(id) { activeIntervals.push(id); return id; }
+function trackTimeout(id) { activeTimeouts.push(id); return id; }
+
+function $(id) { return document.getElementById(id); }
+function $q(sel, ctx) { return (ctx || document).querySelector(sel); }
+function $qa(sel, ctx) { return (ctx || document).querySelectorAll(sel); }
+
+function switchScreen(screenId) {
+    var screens = $qa('.screen');
+    for (var i = 0; i < screens.length; i++) {
+        screens[i].classList.remove('active');
     }
-
-    function showScreen(screenId) {
-        var screens = document.querySelectorAll('.screen');
-        screens.forEach(function (screen) {
-            screen.classList.remove('active');
-        });
-
-        // Clear confetti container on every screen transition to prevent DOM accumulation
-        var confettiContainer = getElement('confetti-container');
-        if (confettiContainer) {
-            confettiContainer.innerHTML = '';
-        }
-
-        // Cancel any pending mini-confetti cleanup timeout
-        if (state.miniConfettiTimeout) {
-            clearTimeout(state.miniConfettiTimeout);
-            state.miniConfettiTimeout = null;
-        }
-
-        var target = getElement(screenId);
-        if (target) {
-            // Small delay for transition effect
-            setTimeout(function () {
-                target.classList.add('active');
-            }, 50);
-        }
-        state.currentScreen = screenId;
+    var target = $(screenId);
+    if (target) {
+        target.classList.add('active');
     }
+}
 
-    function getRandomItem(arr) {
-        return arr[Math.floor(Math.random() * arr.length)];
+function getRandomItem(arr, exclude) {
+    var filtered = arr;
+    if (exclude !== null && exclude !== undefined) {
+        filtered = arr.filter(function(item) { return item !== exclude; });
+        if (filtered.length === 0) filtered = arr;
     }
+    return filtered[Math.floor(Math.random() * filtered.length)];
+}
 
-    function getRandomCompliment() {
-        // Try to show a compliment not yet shown
-        var available = COMPLIMENTS.filter(function (c) {
-            return state.complimentsShown.indexOf(c) === -1;
-        });
-        if (available.length === 0) {
-            state.complimentsShown = [];
-            available = COMPLIMENTS.slice();
-        }
-        var chosen = getRandomItem(available);
-        state.complimentsShown.push(chosen);
-        return chosen;
-    }
+function getAngerColor(level) {
+    if (level <= 0.5) return '#4ade80';
+    if (level <= 1.5) return '#facc15';
+    if (level <= 2.5) return '#f97316';
+    return '#ef4444';
+}
 
-    function getAngerColor(level) {
-        if (level <= 1) return 'var(--anger-green)';
-        if (level <= 2) return 'var(--anger-yellow)';
-        if (level <= 3.5) return 'var(--anger-orange)';
-        return 'var(--anger-red)';
-    }
+// ==================== STATE MACHINE ====================
+var states = {};
 
-    // ==================== BACKGROUND EFFECTS ====================
+function transition(stateName) {
+    var oldState = states[state.currentScreen];
+    if (oldState && oldState.exit) oldState.exit();
+    clearAllTimers();
+    state.currentScreen = stateName;
+    var newState = states[stateName];
+    if (newState && newState.enter) newState.enter();
+    if (newState && newState.render) newState.render();
+}
 
-    function createStars() {
-        var container = getElement('floating-stars');
-        if (!container) return;
-        for (var i = 0; i < 50; i++) {
-            var star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.setProperty('--duration', (2 + Math.random() * 4) + 's');
-            star.style.animationDelay = Math.random() * 5 + 's';
-            container.appendChild(star);
-        }
-    }
+// ==================== SCAN_SCREEN ====================
+states.SCAN_SCREEN = {
+    enter: function() {
+        switchScreen('screen-scan');
+    },
+    render: function() {},
+    exit: function() {}
+};
 
-    function createClouds() {
-        var container = getElement('clouds');
-        if (!container) return;
-        for (var i = 0; i < 5; i++) {
-            var cloud = document.createElement('div');
-            cloud.className = 'cloud';
-            cloud.style.width = (80 + Math.random() * 120) + 'px';
-            cloud.style.height = (30 + Math.random() * 40) + 'px';
-            cloud.style.top = (10 + Math.random() * 60) + '%';
-            cloud.style.left = '-150px';
-            cloud.style.setProperty('--cloud-duration', (25 + Math.random() * 30) + 's');
-            cloud.style.animationDelay = Math.random() * 20 + 's';
-            container.appendChild(cloud);
-        }
-    }
-
-    function createSparkles() {
-        var container = getElement('sparkles');
-        if (!container) return;
-        container.innerHTML = '';
-        for (var i = 0; i < 12; i++) {
-            var sparkle = document.createElement('div');
-            sparkle.className = 'sparkle';
-            sparkle.style.left = Math.random() * 100 + '%';
-            sparkle.style.top = Math.random() * 100 + '%';
-            sparkle.style.animationDelay = Math.random() * 2 + 's';
-            container.appendChild(sparkle);
-        }
-    }
-
-    function createConfetti() {
-        var container = getElement('confetti-container');
-        if (!container) return;
-        container.innerHTML = '';
-        var colors = ['#f87171', '#4ade80', '#facc15', '#60a5fa', '#f472b6', '#a78bfa', '#34d399'];
-        for (var i = 0; i < 60; i++) {
-            var piece = document.createElement('div');
-            piece.className = 'confetti-piece';
-            piece.style.left = Math.random() * 100 + '%';
-            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-            piece.style.setProperty('--fall-duration', (2 + Math.random() * 3) + 's');
-            piece.style.animationDelay = Math.random() * 2 + 's';
-            piece.style.width = (6 + Math.random() * 8) + 'px';
-            piece.style.height = (6 + Math.random() * 8) + 'px';
-            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-            container.appendChild(piece);
-        }
-    }
-
-    function triggerMiniConfetti() {
-        // Small confetti burst for yes-level completions
-        var container = getElement('confetti-container');
-        if (!container) return;
-
-        // Cancel any pending cleanup timeout before creating new confetti
-        if (state.miniConfettiTimeout) {
-            clearTimeout(state.miniConfettiTimeout);
-            state.miniConfettiTimeout = null;
-        }
-
-        container.innerHTML = '';
-        var colors = ['#4ade80', '#facc15', '#60a5fa', '#f472b6'];
-        for (var i = 0; i < 20; i++) {
-            var piece = document.createElement('div');
-            piece.className = 'confetti-piece';
-            piece.style.left = Math.random() * 100 + '%';
-            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-            piece.style.setProperty('--fall-duration', (1.5 + Math.random() * 2) + 's');
-            piece.style.animationDelay = Math.random() * 0.5 + 's';
-            piece.style.width = (5 + Math.random() * 6) + 'px';
-            piece.style.height = (5 + Math.random() * 6) + 'px';
-            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-            container.appendChild(piece);
-        }
-        // Clean up after animation
-        state.miniConfettiTimeout = setTimeout(function () {
-            container.innerHTML = '';
-            state.miniConfettiTimeout = null;
-        }, 4000);
-    }
-
-    // ==================== LOADING SCREENS ====================
-
-    function runLoadingSequence(screenId, messages, progressId, messageId, callback) {
-        showScreen(screenId);
-        var index = 0;
-        var progress = getElement(progressId);
-        var msgEl = getElement(messageId);
-
-        if (progress) progress.style.width = '0%';
-
-        var interval = setInterval(function () {
-            if (index < messages.length) {
-                if (msgEl) {
-                    // Security: use textContent not innerHTML
-                    msgEl.textContent = messages[index];
-                }
-                if (progress) {
-                    progress.style.width = ((index + 1) / messages.length * 100) + '%';
-                }
-                index++;
+// ==================== ANGER_SCAN ====================
+states.ANGER_SCAN = {
+    enter: function() {
+        switchScreen('screen-anger-scan');
+        var screen = $('screen-anger-scan');
+        var loading = $q('.scan-loading-container', screen);
+        var result = $q('.scan-result-container', screen);
+        loading.classList.remove('hidden');
+        result.classList.add('hidden');
+        this.runLoading();
+    },
+    render: function() {},
+    exit: function() {},
+    runLoading: function() {
+        var screen = $('screen-anger-scan');
+        var textEl = $q('.scan-status-text', screen);
+        var barFill = $q('.scan-loading-container .progress-bar-fill', screen);
+        var pctEl = $q('.scan-percentage', screen);
+        var idx = 0;
+        var total = SCAN_MESSAGES.length;
+        var interval = trackInterval(setInterval(function() {
+            if (idx < total) {
+                textEl.textContent = SCAN_MESSAGES[idx];
+                var pct = Math.round(((idx + 1) / total) * 100);
+                barFill.style.width = pct + '%';
+                pctEl.textContent = pct + '%';
+                idx++;
             } else {
                 clearInterval(interval);
-                if (callback) callback();
+                trackTimeout(setTimeout(function() {
+                    var loading = $q('.scan-loading-container', screen);
+                    var result = $q('.scan-result-container', screen);
+                    loading.classList.add('hidden');
+                    result.classList.remove('hidden');
+                }, 500));
             }
-        }, 1000);
-
-        state.loadingInterval = interval;
+        }, 600));
     }
+};
 
-    // ==================== SCREEN HANDLERS ====================
+// ==================== MAIN_APOLOGY ====================
+states.MAIN_APOLOGY = {
+    enter: function() {
+        switchScreen('screen-main-apology');
+    },
+    render: function() {},
+    exit: function() {}
+};
 
-    // Screen 1: Fingerprint Scanner
-    function handleFingerprint() {
-        showScreen('screen-fingerprint');
-    }
-
-    function onFingerprintTap() {
-        runLoadingSequence(
-            'screen-loading',
-            LOADING_MESSAGES,
-            'loading-progress',
-            'loading-message',
-            function () {
-                showScreen('screen-anger-detect');
-                var fill = getElement('anger-fill-detect');
-                if (fill) {
-                    fill.style.width = '10%';
-                    fill.style.background = 'var(--anger-green)';
-                }
-                var val = getElement('anger-value-detect');
-                if (val) {
-                    // Security: textContent used
-                    val.textContent = '0.5 / 5 Footiya';
-                }
+// ==================== YES_FLOW ====================
+states.YES_FLOW = {
+    enter: function() {
+        switchScreen('screen-yes-flow');
+        var screen = $('screen-yes-flow');
+        var complimentCard = $q('.compliment-card', screen);
+        complimentCard.classList.add('hidden');
+    },
+    render: function() {
+        var screen = $('screen-yes-flow');
+        var questionEl = $q('.yes-flow-question', screen);
+        var progressLabel = $q('.progress-label', screen);
+        questionEl.textContent = YES_QUESTIONS[state.yesCount];
+        progressLabel.textContent = 'Level ' + (state.yesCount + 1) + '/10';
+    },
+    exit: function() {},
+    showCompliment: function() {
+        var screen = $('screen-yes-flow');
+        var complimentCard = $q('.compliment-card', screen);
+        var complimentText = $q('.compliment-text', screen);
+        var chosen = getRandomItem(COMPLIMENTS, state.lastCompliment);
+        state.lastCompliment = chosen;
+        complimentText.textContent = chosen;
+        complimentCard.classList.remove('hidden');
+        trackTimeout(setTimeout(function() {
+            complimentCard.classList.add('hidden');
+            state.yesCount++;
+            if (state.yesCount >= 10) {
+                transition('SUCCESS_SCREEN');
+            } else {
+                states.YES_FLOW.render();
             }
-        );
+        }, 1500));
     }
+};
 
-    // Screen 3: Continue to Apology
-    function onContinueDetect() {
-        showScreen('screen-apology');
-    }
+// ==================== NO_FLOW ====================
+states.NO_FLOW = {
+    enter: function() {
+        switchScreen('screen-no-flow');
+        this.resetNoButton();
+    },
+    render: function() {
+        var screen = $('screen-no-flow');
+        var badge = $q('.anger-level-badge', screen);
+        var meterFill = $q('.anger-meter-fill', screen);
+        var msgEl = $q('.rejection-message', screen);
 
-    // Main Apology: YES
-    function onMainYes() {
-        state.yesLevel = 0;
-        state.noCount = 0;
-        state.angerLevel = 0.5;
-        showYesLevel();
-    }
+        var angerIdx = Math.min(state.noCount - 1, ANGER_LEVELS.length - 1);
+        if (angerIdx < 0) angerIdx = 0;
+        state.angerLevel = ANGER_LEVELS[angerIdx];
 
-    // Main Apology: NO
-    function onMainNo() {
-        state.noCount = 1;
-        state.angerLevel = 0.5;
-        showNoFlow();
-    }
-
-    // ==================== YES FLOW ====================
-
-    function showYesLevel() {
-        if (state.yesLevel >= 10) {
-            // SUCCESS - All 10 confirmed
-            runLoadingSequence(
-                'screen-success-loading',
-                SUCCESS_LOADING_MESSAGES,
-                'success-loading-progress',
-                'success-loading-message',
-                function () {
-                    showScreen('screen-celebration');
-                    createConfetti();
-                }
-            );
-            return;
-        }
-        var question = getElement('yes-question');
-        var level = getElement('yes-level');
-        if (question) question.textContent = YES_QUESTIONS[state.yesLevel];
-        if (level) level.textContent = 'Level ' + (state.yesLevel + 1) + '/10';
-        showScreen('screen-yes-flow');
-    }
-
-    function onYesConfirm() {
-        state.yesLevel++;
-        triggerMiniConfetti();
-        // Show compliment card
-        var complimentText = getElement('compliment-text');
-        if (complimentText) complimentText.textContent = getRandomCompliment();
-        createSparkles();
-        showScreen('screen-compliment');
-        // After 2 seconds, proceed to next level
-        setTimeout(function () {
-            showYesLevel();
-        }, 2000);
-    }
-
-    function onYesDeny() {
-        // If user says NO in yes-flow, go to no flow
-        state.noCount++;
-        state.angerLevel = Math.min(4.5, state.angerLevel + 1);
-        showNoFlow();
-    }
-
-    // ==================== NO FLOW ====================
-
-    function showNoFlow() {
-        if (state.noCount > 12) {
-            // Trigger Advanced Protocol
-            runLoadingSequence(
-                'screen-advanced-loading',
-                ADVANCED_LOADING_MESSAGES,
-                'advanced-loading-progress',
-                'advanced-loading-message',
-                function () {
-                    showScreen('screen-advanced');
-                }
-            );
-            return;
-        }
-
-        var emoji = getElement('no-emoji');
-        var msg = getElement('no-message');
-        var fill = getElement('anger-fill-no');
-        var val = getElement('anger-value-no');
-
-        // Calculate anger - increases with each NO
-        var angerLevels = [0.5, 1.5, 2.5, 3.5, 4.5];
-        var angerIndex = Math.min(state.noCount - 1, angerLevels.length - 1);
-        state.angerLevel = angerLevels[angerIndex];
-
-        var percentage = (state.angerLevel / 5) * 100;
         var color = getAngerColor(state.angerLevel);
+        var pct = (state.angerLevel / 5) * 100;
 
-        if (fill) {
-            fill.style.width = percentage + '%';
-            fill.style.background = color;
-        }
-        if (val) val.textContent = state.angerLevel + '/5';
-        // Cycle through NO_MESSAGES using modulo to avoid identical feedback plateau
-        if (msg) msg.textContent = NO_MESSAGES[(state.noCount - 1) % NO_MESSAGES.length];
+        badge.textContent = 'Anger: ' + state.angerLevel + '/5';
+        badge.style.color = color;
+        meterFill.style.width = pct + '%';
+        meterFill.style.background = color;
 
-        // Change emoji based on anger
-        if (emoji) {
-            if (state.angerLevel <= 1) emoji.textContent = '\u{1F612}';
-            else if (state.angerLevel <= 2) emoji.textContent = '\u{1F620}';
-            else if (state.angerLevel <= 3.5) emoji.textContent = '\u{1F621}';
-            else emoji.textContent = '\u{1F4A2}';
-        }
-
-        showScreen('screen-no-flow');
-    }
-
-    function onNoAccept() {
-        // User clicked YES in no-flow, go to yes flow
-        showYesLevel();
-    }
-
-    function onNoReject() {
-        state.noCount++;
-        state.angerLevel = Math.min(4.5, state.angerLevel + 1);
-        showNoFlow();
-    }
-
-    // ==================== ADVANCED PROTOCOL ====================
-
-    function onBhaiyaGood() {
-        // Return to yes flow
-        showYesLevel();
-    }
-
-    function onBhaiyaBad() {
-        showScreen('screen-heartbreak');
-    }
-
-    function onOkayContinue() {
-        showYesLevel();
-    }
-
-    function onStillBad() {
-        // Portal animation, then restart
-        showScreen('screen-portal');
-        setTimeout(function () {
-            // Reset state
-            state.yesLevel = 0;
-            state.noCount = 0;
-            state.angerLevel = 0.5;
-            showScreen('screen-fingerprint');
-        }, 3000);
-    }
-
-    // ==================== POST-CELEBRATION FLOW ====================
-
-    function onToShayari() {
-        showScreen('screen-shayari');
-    }
-
-    function onConfirmRecord() {
-        runLoadingSequence(
-            'screen-final-loading',
-            FINAL_LOADING_MESSAGES,
-            'final-loading-progress',
-            'final-loading-message',
-            function () {
-                showScreen('screen-final-record');
-                // Animate progress bar to 100%
-                var bar = getElement('final-progress-bar');
-                if (bar) {
-                    bar.style.width = '0%';
-                    setTimeout(function () {
-                        bar.style.width = '100%';
-                    }, 100);
-                }
-            }
-        );
-    }
-
-    function onToMeme() {
-        showScreen('screen-meme');
-        loadMeme();
-    }
-
-    function onToGallery() {
-        showScreen('screen-gallery');
-        loadGallery();
-    }
-
-    function onRestart() {
-        state.yesLevel = 0;
-        state.noCount = 0;
-        state.angerLevel = 0.5;
-        state.complimentsShown = [];
-        showScreen('screen-fingerprint');
-    }
-
-    // ==================== MEME LOADING ====================
-
-    function loadMeme() {
-        var container = getElement('meme-container');
-        if (!container) return;
-
-        // Security: Create img element safely, no innerHTML with user data
-        var formats = ['gif', 'jpg', 'png', 'webp'];
-        var loaded = false;
-
-        function tryFormat(index) {
-            if (index >= formats.length) {
-                // Show placeholder - Security: use textContent
-                container.innerHTML = '';
-                var placeholder = document.createElement('div');
-                placeholder.className = 'meme-placeholder';
-                var icon = document.createElement('span');
-                icon.textContent = '\u{1F3AC}';
-                var text = document.createElement('p');
-                text.textContent = 'Add your meme to images/final-meme.jpg';
-                placeholder.appendChild(icon);
-                placeholder.appendChild(text);
-                container.appendChild(placeholder);
-                return;
-            }
-
-            var img = document.createElement('img');
-            img.alt = 'Final Meme for 1/5 Footiya';
-            img.src = 'images/final-meme.' + formats[index];
-
-            img.addEventListener('load', function () {
-                if (!loaded) {
-                    loaded = true;
-                    container.innerHTML = '';
-                    container.appendChild(img);
-                }
-            });
-
-            img.addEventListener('error', function () {
-                if (!loaded) {
-                    tryFormat(index + 1);
-                }
-            });
-        }
-
-        tryFormat(0);
-    }
-
-    // ==================== MEMORY GALLERY ====================
-
-    function loadGallery() {
-        var grid = getElement('gallery-grid');
-        if (!grid) return;
-        grid.innerHTML = '';
-
-        var formats = ['gif', 'jpg', 'png', 'webp'];
-
-        for (var i = 1; i <= 5; i++) {
-            var item = document.createElement('div');
-            item.className = 'gallery-item';
-
-            // Use multi-format fallback pattern (same as loadMeme)
-            (function (itemEl, idx) {
-                var loaded = false;
-
-                function tryFormat(fmtIndex) {
-                    if (fmtIndex >= formats.length) {
-                        // Show placeholder instead
-                        var placeholder = document.createElement('div');
-                        placeholder.className = 'gallery-placeholder';
-                        placeholder.textContent = '\u{1F4F7}';
-                        itemEl.insertBefore(placeholder, itemEl.firstChild);
-                        return;
-                    }
-
-                    var img = document.createElement('img');
-                    img.alt = 'Memory ' + idx + ' with 1/5 Footiya';
-                    img.src = 'images/memory' + idx + '.' + formats[fmtIndex];
-
-                    img.addEventListener('load', function () {
-                        if (!loaded) {
-                            loaded = true;
-                            itemEl.insertBefore(img, itemEl.firstChild);
-                        }
-                    });
-
-                    img.addEventListener('error', function () {
-                        if (!loaded) {
-                            tryFormat(fmtIndex + 1);
-                        }
-                    });
-                }
-
-                tryFormat(0);
-            })(item, i);
-
-            // Security: Use <input> element instead of contenteditable div to prevent XSS
-            var caption = document.createElement('input');
-            caption.className = 'gallery-caption';
-            caption.type = 'text';
-            caption.value = 'Memory ' + i + ' - Click to edit caption';
-            item.appendChild(caption);
-
-            grid.appendChild(item);
-        }
-    }
-
-    // ==================== NO BUTTON ESCAPE LOGIC ====================
-
-    function setupNoButtonEscape() {
-        var noBtn = getElement('btn-no-reject');
-        if (!noBtn) return;
-
-        var isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-        if (!isMobile) {
-            // Desktop: mouse proximity detection with rAF throttle
-            document.addEventListener('mousemove', function (e) {
-                if (state.currentScreen !== 'screen-no-flow') return;
-                if (state.rafPending) return;
-                state.rafPending = true;
-                requestAnimationFrame(function () {
-                    state.rafPending = false;
-                    var btn = getElement('btn-no-reject');
-                    if (!btn) return;
-
-                    var rect = btn.getBoundingClientRect();
-                    var btnCenterX = rect.left + rect.width / 2;
-                    var btnCenterY = rect.top + rect.height / 2;
-                    var distX = e.clientX - btnCenterX;
-                    var distY = e.clientY - btnCenterY;
-                    var distance = Math.sqrt(distX * distX + distY * distY);
-
-                    // If cursor is within 80px of the button, move it away
-                    if (distance < 80) {
-                        var moveX = 0;
-                        var moveY = 0;
-
-                        // Move away from cursor
-                        if (distX !== 0 || distY !== 0) {
-                            var angle = Math.atan2(distY, distX);
-                            moveX = -Math.cos(angle) * 120;
-                            moveY = -Math.sin(angle) * 120;
-                        } else {
-                            moveX = (Math.random() - 0.5) * 200;
-                            moveY = (Math.random() - 0.5) * 200;
-                        }
-
-                        // Keep button within viewport
-                        var newLeft = rect.left + moveX;
-                        var newTop = rect.top + moveY;
-                        var maxX = window.innerWidth - rect.width - 10;
-                        var maxY = window.innerHeight - rect.height - 10;
-                        newLeft = Math.max(10, Math.min(maxX, newLeft));
-                        newTop = Math.max(10, Math.min(maxY, newTop));
-
-                        // Calculate transform from original position
-                        var origRect = btn.parentElement.getBoundingClientRect();
-                        var origLeft = origRect.left + origRect.width / 2 - rect.width / 2;
-                        var origTop = origRect.top + origRect.height - rect.height;
-
-                        btn.style.position = 'fixed';
-                        btn.style.left = newLeft + 'px';
-                        btn.style.top = newTop + 'px';
-                        btn.style.zIndex = '50';
-                        btn.style.margin = '0';
-                    }
-                });
-            });
-        } else {
-            // Mobile: jump on touchstart near button
-            document.addEventListener('touchstart', function (e) {
-                if (state.currentScreen !== 'screen-no-flow') return;
-                var btn = getElement('btn-no-reject');
-                if (!btn) return;
-
-                var touch = e.touches[0];
-                var rect = btn.getBoundingClientRect();
-                var btnCenterX = rect.left + rect.width / 2;
-                var btnCenterY = rect.top + rect.height / 2;
-                var distX = touch.clientX - btnCenterX;
-                var distY = touch.clientY - btnCenterY;
-                var distance = Math.sqrt(distX * distX + distY * distY);
-
-                // If touch is within 60px, jump the button
-                if (distance < 60) {
-                    var newX = Math.random() * (window.innerWidth - rect.width - 20) + 10;
-                    var newY = Math.random() * (window.innerHeight - rect.height - 20) + 10;
-
-                    btn.style.position = 'fixed';
-                    btn.style.left = newX + 'px';
-                    btn.style.top = newY + 'px';
-                    btn.style.zIndex = '50';
-                    btn.style.margin = '0';
-                }
-            }, { passive: true });
-        }
-    }
-
-    // Reset NO button position when entering no-flow screen
-    function resetNoButton() {
-        var btn = getElement('btn-no-reject');
+        var chosen = getRandomItem(REJECTION_MESSAGES, state.lastRejectionMessage);
+        state.lastRejectionMessage = chosen;
+        msgEl.textContent = chosen;
+    },
+    exit: function() {},
+    resetNoButton: function() {
+        var btn = $('btn-no-flow-no');
         if (btn) {
+            btn.classList.remove('escaping');
             btn.style.position = '';
             btn.style.left = '';
             btn.style.top = '';
@@ -716,125 +268,575 @@
             btn.style.margin = '';
         }
     }
+};
 
-    // ==================== EVENT LISTENERS ====================
+// ==================== ADVANCED_BROTHER_PROTOCOL ====================
+states.ADVANCED_BROTHER_PROTOCOL = {
+    phase: 1,
+    enter: function() {
+        switchScreen('screen-advanced-protocol');
+        this.phase = 1;
+        this.showPhase1();
+    },
+    render: function() {},
+    exit: function() { this.phase = 1; },
+    hideAll: function() {
+        var screen = $('screen-advanced-protocol');
+        $q('.protocol-loading', screen).classList.add('hidden');
+        $q('.protocol-main', screen).classList.add('hidden');
+        $q('.protocol-heartbreak', screen).classList.add('hidden');
+        $q('.protocol-portal', screen).classList.add('hidden');
+    },
+    showPhase1: function() {
+        this.hideAll();
+        var screen = $('screen-advanced-protocol');
+        var loading = $q('.protocol-loading', screen);
+        loading.classList.remove('hidden');
+        var textEl = $q('.protocol-loading-text', screen);
+        var barFill = $q('.protocol-loading .progress-bar-fill', screen);
+        var idx = 0;
+        var total = PROTOCOL_MESSAGES.length;
+        var interval = trackInterval(setInterval(function() {
+            if (idx < total) {
+                textEl.textContent = PROTOCOL_MESSAGES[idx];
+                barFill.style.width = Math.round(((idx + 1) / total) * 100) + '%';
+                idx++;
+            } else {
+                clearInterval(interval);
+                trackTimeout(setTimeout(function() {
+                    states.ADVANCED_BROTHER_PROTOCOL.showPhase2();
+                }, 500));
+            }
+        }, 1000));
+    },
+    showPhase2: function() {
+        this.hideAll();
+        this.phase = 2;
+        var screen = $('screen-advanced-protocol');
+        var main = $q('.protocol-main', screen);
+        main.classList.remove('hidden');
+        var msg = $q('.protocol-message', screen);
+        msg.textContent = 'Come on 1/5 Footiya.\n\nBhaiya itne bhi bure nahi hain.';
+    },
+    showPhase3: function() {
+        this.hideAll();
+        this.phase = 3;
+        var screen = $('screen-advanced-protocol');
+        var hb = $q('.protocol-heartbreak', screen);
+        hb.classList.remove('hidden');
+        var msg = $q('.heartbreak-message', screen);
+        msg.textContent = 'It hurts.\n\nDid you forget?\nWho is big brother?\nBig brother is big brother.\n\nAt least listen to the apology.';
+    },
+    showPhase4: function() {
+        this.hideAll();
+        this.phase = 4;
+        var screen = $('screen-advanced-protocol');
+        var portal = $q('.protocol-portal', screen);
+        portal.classList.remove('hidden');
+        trackTimeout(setTimeout(function() {
+            state.yesCount = 0;
+            state.noCount = 0;
+            state.angerLevel = 0.5;
+            state.lastCompliment = null;
+            state.lastRejectionMessage = null;
+            transition('SCAN_SCREEN');
+        }, 2500));
+    }
+};
 
-    function initEventListeners() {
-        // Screen 1: Fingerprint - tap anywhere
-        var fpScreen = getElement('screen-fingerprint');
-        if (fpScreen) {
-            fpScreen.addEventListener('click', onFingerprintTap);
+// ==================== SUCCESS_SCREEN ====================
+states.SUCCESS_SCREEN = {
+    enter: function() {
+        switchScreen('screen-success');
+        var screen = $('screen-success');
+        var loading = $q('.success-loading', screen);
+        var celebration = $q('.success-celebration', screen);
+        loading.classList.remove('hidden');
+        celebration.classList.add('hidden');
+        this.runLoading();
+    },
+    render: function() {},
+    exit: function() {
+        var screen = $('screen-success');
+        var container = $q('.confetti-container', screen);
+        if (container) container.textContent = '';
+    },
+    runLoading: function() {
+        var screen = $('screen-success');
+        var textEl = $q('.success-loading-text', screen);
+        var barFill = $q('.success-loading .progress-bar-fill', screen);
+        var idx = 0;
+        var total = SUCCESS_MESSAGES.length;
+        var interval = trackInterval(setInterval(function() {
+            if (idx < total) {
+                textEl.textContent = SUCCESS_MESSAGES[idx];
+                barFill.style.width = Math.round(((idx + 1) / total) * 100) + '%';
+                idx++;
+            } else {
+                clearInterval(interval);
+                trackTimeout(setTimeout(function() {
+                    var loading = $q('.success-loading', screen);
+                    var celebration = $q('.success-celebration', screen);
+                    loading.classList.add('hidden');
+                    celebration.classList.remove('hidden');
+                    states.SUCCESS_SCREEN.createConfetti();
+                }, 500));
+            }
+        }, 1000));
+    },
+    createConfetti: function() {
+        var screen = $('screen-success');
+        var container = $q('.confetti-container', screen);
+        container.textContent = '';
+        var colors = ['#d4a574', '#4ade80', '#60a5fa', '#a78bfa', '#ef4444'];
+        for (var i = 0; i < 50; i++) {
+            var piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.animationDelay = (Math.random() * 2) + 's';
+            piece.style.width = (6 + Math.random() * 8) + 'px';
+            piece.style.height = (6 + Math.random() * 8) + 'px';
+            container.appendChild(piece);
         }
+    },
+    skipToSuccess: function() {
+        switchScreen('screen-success');
+        var screen = $('screen-success');
+        var loading = $q('.success-loading', screen);
+        var celebration = $q('.success-celebration', screen);
+        loading.classList.add('hidden');
+        celebration.classList.remove('hidden');
+        this.createConfetti();
+    }
+};
 
-        // Screen 3: Continue button
-        var btnContinue = getElement('btn-continue-detect');
-        if (btnContinue) {
-            btnContinue.addEventListener('click', onContinueDetect);
+// ==================== SHAYARI_SCREEN ====================
+states.SHAYARI_SCREEN = {
+    enter: function() { switchScreen('screen-shayari'); },
+    render: function() {},
+    exit: function() {}
+};
+
+// ==================== RECORD_SCREEN ====================
+states.RECORD_SCREEN = {
+    enter: function() {
+        switchScreen('screen-record');
+        var screen = $('screen-record');
+        var loading = $q('.record-loading', screen);
+        var result = $q('.record-result', screen);
+        loading.classList.remove('hidden');
+        result.classList.add('hidden');
+        this.runLoading();
+    },
+    render: function() {},
+    exit: function() {},
+    runLoading: function() {
+        var screen = $('screen-record');
+        var textEl = $q('.record-loading-text', screen);
+        var barFill = $q('.record-loading .progress-bar-fill', screen);
+        var idx = 0;
+        var total = RECORD_MESSAGES.length;
+        var interval = trackInterval(setInterval(function() {
+            if (idx < total) {
+                textEl.textContent = RECORD_MESSAGES[idx];
+                barFill.style.width = Math.round(((idx + 1) / total) * 100) + '%';
+                idx++;
+            } else {
+                clearInterval(interval);
+                trackTimeout(setTimeout(function() {
+                    var loading = $q('.record-loading', screen);
+                    var result = $q('.record-result', screen);
+                    loading.classList.add('hidden');
+                    result.classList.remove('hidden');
+                    var happyFill = $q('.happiness-bar .progress-bar-fill', screen);
+                    if (happyFill) {
+                        happyFill.style.width = '0%';
+                        setTimeout(function() { happyFill.style.width = '100%'; }, 100);
+                    }
+                }, 500));
+            }
+        }, 1000));
+    }
+};
+
+// ==================== MEME_SCREEN ====================
+states.MEME_SCREEN = {
+    enter: function() {
+        switchScreen('screen-meme');
+        this.renderMedia();
+    },
+    render: function() {},
+    exit: function() {},
+    renderMedia: function() {
+        var screen = $('screen-meme');
+        var container = $q('.meme-container', screen);
+        container.textContent = '';
+        if (state.mediaDetected === 'mp4' || state.mediaDetected === 'webm') {
+            var video = document.createElement('video');
+            video.autoplay = true;
+            video.muted = true;
+            video.loop = true;
+            video.playsInline = true;
+            video.setAttribute('playsinline', '');
+            video.style.maxWidth = '100%';
+            video.style.borderRadius = '12px';
+            var source = document.createElement('source');
+            source.src = 'images/final-meme.' + state.mediaDetected;
+            source.type = 'video/' + state.mediaDetected;
+            video.appendChild(source);
+            container.appendChild(video);
+        } else if (state.mediaDetected === 'gif' || state.mediaDetected === 'jpg') {
+            var img = document.createElement('img');
+            img.src = 'images/final-meme.' + state.mediaDetected;
+            img.alt = 'Meme for 1/5 Footiya';
+            img.style.maxWidth = '100%';
+            img.style.borderRadius = '12px';
+            container.appendChild(img);
         }
+    }
+};
 
-        // Main Apology: YES/NO
-        var btnYes = getElement('btn-yes');
-        if (btnYes) {
-            btnYes.addEventListener('click', onMainYes);
+// ==================== MEMORY_SCREEN ====================
+states.MEMORY_SCREEN = {
+    foundImages: [],
+    enter: function() {
+        switchScreen('screen-memory');
+        this.renderGallery();
+    },
+    render: function() {},
+    exit: function() {},
+    renderGallery: function() {
+        var screen = $('screen-memory');
+        var grid = $q('.memory-grid', screen);
+        grid.textContent = '';
+        for (var i = 0; i < this.foundImages.length; i++) {
+            var img = document.createElement('img');
+            img.src = this.foundImages[i];
+            img.alt = 'Memory with 1/5 Footiya';
+            img.style.maxWidth = '100%';
+            img.style.borderRadius = '12px';
+            grid.appendChild(img);
         }
+    }
+};
 
-        var btnNo = getElement('btn-no');
-        if (btnNo) {
-            btnNo.addEventListener('click', onMainNo);
+// ==================== CASE_CLOSED_SCREEN ====================
+states.CASE_CLOSED_SCREEN = {
+    enter: function() { switchScreen('screen-case-closed'); },
+    render: function() {},
+    exit: function() {}
+};
+
+// ==================== MEDIA DETECTION ====================
+function detectMedia() {
+    var formats = ['mp4', 'webm', 'gif', 'jpg'];
+    var idx = 0;
+    function tryNext() {
+        if (idx >= formats.length) {
+            state.mediaDetected = null;
+            return;
         }
-
-        // Yes Flow: Confirm / Deny
-        var btnYesConfirm = getElement('btn-yes-confirm');
-        if (btnYesConfirm) {
-            btnYesConfirm.addEventListener('click', onYesConfirm);
-        }
-
-        var btnYesDeny = getElement('btn-yes-deny');
-        if (btnYesDeny) {
-            btnYesDeny.addEventListener('click', onYesDeny);
-        }
-
-        // No Flow: Accept / Reject
-        var btnNoAccept = getElement('btn-no-accept');
-        if (btnNoAccept) {
-            btnNoAccept.addEventListener('click', onNoAccept);
-        }
-
-        var btnNoReject = getElement('btn-no-reject');
-        if (btnNoReject) {
-            btnNoReject.addEventListener('click', function () {
-                onNoReject();
-                resetNoButton();
+        var fmt = formats[idx];
+        if (fmt === 'mp4' || fmt === 'webm') {
+            var video = document.createElement('video');
+            video.preload = 'metadata';
+            var source = document.createElement('source');
+            source.src = 'images/final-meme.' + fmt;
+            source.type = 'video/' + fmt;
+            video.appendChild(source);
+            video.addEventListener('loadedmetadata', function() {
+                state.mediaDetected = fmt;
+            });
+            video.addEventListener('error', function() {
+                idx++;
+                tryNext();
+            });
+            source.addEventListener('error', function() {
+                idx++;
+                tryNext();
+            });
+            video.load();
+        } else {
+            var img = new Image();
+            img.src = 'images/final-meme.' + fmt;
+            img.addEventListener('load', function() {
+                state.mediaDetected = fmt;
+            });
+            img.addEventListener('error', function() {
+                idx++;
+                tryNext();
             });
         }
-
-        // Advanced Protocol
-        var btnBhaiyaGood = getElement('btn-bhaiya-good');
-        if (btnBhaiyaGood) {
-            btnBhaiyaGood.addEventListener('click', onBhaiyaGood);
-        }
-
-        var btnBhaiyaBad = getElement('btn-bhaiya-bad');
-        if (btnBhaiyaBad) {
-            btnBhaiyaBad.addEventListener('click', onBhaiyaBad);
-        }
-
-        // Heartbreak
-        var btnOkayContinue = getElement('btn-okay-continue');
-        if (btnOkayContinue) {
-            btnOkayContinue.addEventListener('click', onOkayContinue);
-        }
-
-        var btnStillBad = getElement('btn-still-bad');
-        if (btnStillBad) {
-            btnStillBad.addEventListener('click', onStillBad);
-        }
-
-        // Celebration -> Shayari
-        var btnToShayari = getElement('btn-to-shayari');
-        if (btnToShayari) {
-            btnToShayari.addEventListener('click', onToShayari);
-        }
-
-        // Shayari -> Final Record
-        var btnConfirmRecord = getElement('btn-confirm-record');
-        if (btnConfirmRecord) {
-            btnConfirmRecord.addEventListener('click', onConfirmRecord);
-        }
-
-        // Final Record -> Meme
-        var btnToMeme = getElement('btn-to-meme');
-        if (btnToMeme) {
-            btnToMeme.addEventListener('click', onToMeme);
-        }
-
-        // Meme -> Gallery
-        var btnToGallery = getElement('btn-to-gallery');
-        if (btnToGallery) {
-            btnToGallery.addEventListener('click', onToGallery);
-        }
-
-        // Gallery -> Restart
-        var btnRestart = getElement('btn-restart');
-        if (btnRestart) {
-            btnRestart.addEventListener('click', onRestart);
-        }
     }
+    tryNext();
+}
 
-    // ==================== INITIALIZATION ====================
-
-    function init() {
-        createStars();
-        createClouds();
-        initEventListeners();
-        setupNoButtonEscape();
+function detectMemories() {
+    var found = [];
+    var checked = 0;
+    for (var i = 1; i <= 5; i++) {
+        (function(index) {
+            var img = new Image();
+            img.src = 'images/memories/memory' + index + '.jpg';
+            img.addEventListener('load', function() {
+                found.push(img.src);
+                state.memoryGalleryDetected = true;
+                states.MEMORY_SCREEN.foundImages = found;
+                checked++;
+            });
+            img.addEventListener('error', function() {
+                checked++;
+            });
+        })(i);
     }
+}
 
-    // Security: DOMContentLoaded ensures DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+// ==================== NO BUTTON ESCAPE ====================
+function setupNoButtonEscape() {
+    var isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    if (!isMobile) {
+        document.addEventListener('mousemove', function(e) {
+            if (state.currentScreen !== 'NO_FLOW') return;
+            var btn = $('btn-no-flow-no');
+            if (!btn) return;
+            var rect = btn.getBoundingClientRect();
+            var cx = rect.left + rect.width / 2;
+            var cy = rect.top + rect.height / 2;
+            var dx = e.clientX - cx;
+            var dy = e.clientY - cy;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 80) {
+                var angle = Math.atan2(dy, dx);
+                var newX = rect.left - Math.cos(angle) * 120;
+                var newY = rect.top - Math.sin(angle) * 120;
+                var maxX = window.innerWidth - rect.width - 10;
+                var maxY = window.innerHeight - rect.height - 10;
+                newX = Math.max(10, Math.min(maxX, newX));
+                newY = Math.max(10, Math.min(maxY, newY));
+                btn.classList.add('escaping');
+                btn.style.position = 'fixed';
+                btn.style.left = newX + 'px';
+                btn.style.top = newY + 'px';
+                btn.style.zIndex = '9999';
+                btn.style.margin = '0';
+            }
+        });
     } else {
-        init();
+        document.addEventListener('touchstart', function(e) {
+            if (state.currentScreen !== 'NO_FLOW') return;
+            var btn = $('btn-no-flow-no');
+            if (!btn) return;
+            var touch = e.touches[0];
+            var rect = btn.getBoundingClientRect();
+            var cx = rect.left + rect.width / 2;
+            var cy = rect.top + rect.height / 2;
+            var dx = touch.clientX - cx;
+            var dy = touch.clientY - cy;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 80) {
+                var newX = Math.random() * (window.innerWidth - rect.width - 20) + 10;
+                var newY = Math.random() * (window.innerHeight - rect.height - 20) + 10;
+                btn.classList.add('escaping');
+                btn.style.position = 'fixed';
+                btn.style.left = newX + 'px';
+                btn.style.top = newY + 'px';
+                btn.style.zIndex = '9999';
+                btn.style.margin = '0';
+            }
+        }, { passive: true });
     }
+}
+
+// ==================== BACKGROUND PARTICLES ====================
+function createParticles() {
+    var container = $('bg-particles');
+    if (!container) return;
+    for (var i = 0; i < 30; i++) {
+        var p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.top = Math.random() * 100 + '%';
+        p.style.animationDelay = (Math.random() * 5) + 's';
+        container.appendChild(p);
+    }
+}
+
+// ==================== EVENT LISTENERS ====================
+function initEvents() {
+    // SCAN_SCREEN: tap anywhere
+    var scanScreen = $('screen-scan');
+    if (scanScreen) {
+        scanScreen.addEventListener('click', function() {
+            if (state.currentScreen === 'SCAN_SCREEN') {
+                transition('ANGER_SCAN');
+            }
+        });
+    }
+
+    // ANGER_SCAN: Continue
+    var btnAngerContinue = $('btn-anger-continue');
+    if (btnAngerContinue) {
+        btnAngerContinue.addEventListener('click', function() {
+            transition('MAIN_APOLOGY');
+        });
+    }
+
+    // MAIN_APOLOGY: YES / NO
+    var btnMainYes = $('btn-main-yes');
+    if (btnMainYes) {
+        btnMainYes.addEventListener('click', function() {
+            state.yesCount = 0;
+            transition('YES_FLOW');
+        });
+    }
+    var btnMainNo = $('btn-main-no');
+    if (btnMainNo) {
+        btnMainNo.addEventListener('click', function() {
+            state.noCount++;
+            transition('NO_FLOW');
+        });
+    }
+
+    // YES_FLOW: YES / NO
+    var btnYesYes = $('btn-yes-flow-yes');
+    if (btnYesYes) {
+        btnYesYes.addEventListener('click', function() {
+            states.YES_FLOW.showCompliment();
+        });
+    }
+    var btnYesNo = $('btn-yes-flow-no');
+    if (btnYesNo) {
+        btnYesNo.addEventListener('click', function() {
+            state.noCount++;
+            transition('NO_FLOW');
+        });
+    }
+
+    // NO_FLOW: YES / NO
+    var btnNoYes = $('btn-no-flow-yes');
+    if (btnNoYes) {
+        btnNoYes.addEventListener('click', function() {
+            transition('YES_FLOW');
+        });
+    }
+    var btnNoNo = $('btn-no-flow-no');
+    if (btnNoNo) {
+        btnNoNo.addEventListener('click', function() {
+            state.noCount++;
+            if (state.noCount >= 12) {
+                transition('ADVANCED_BROTHER_PROTOCOL');
+            } else {
+                states.NO_FLOW.render();
+                states.NO_FLOW.resetNoButton();
+            }
+        });
+    }
+
+    // ADVANCED PROTOCOL buttons
+    var btnProtocolYes = $('btn-protocol-yes');
+    if (btnProtocolYes) {
+        btnProtocolYes.addEventListener('click', function() {
+            transition('YES_FLOW');
+        });
+    }
+    var btnProtocolNo = $('btn-protocol-no');
+    if (btnProtocolNo) {
+        btnProtocolNo.addEventListener('click', function() {
+            states.ADVANCED_BROTHER_PROTOCOL.showPhase3();
+        });
+    }
+    var btnProtocolContinue = $('btn-protocol-continue');
+    if (btnProtocolContinue) {
+        btnProtocolContinue.addEventListener('click', function() {
+            transition('YES_FLOW');
+        });
+    }
+    var btnProtocolStillBad = $('btn-protocol-still-bad');
+    if (btnProtocolStillBad) {
+        btnProtocolStillBad.addEventListener('click', function() {
+            states.ADVANCED_BROTHER_PROTOCOL.showPhase4();
+        });
+    }
+
+    // SUCCESS: Accept
+    var btnSuccessAccept = $('btn-success-accept');
+    if (btnSuccessAccept) {
+        btnSuccessAccept.addEventListener('click', function() {
+            transition('SHAYARI_SCREEN');
+        });
+    }
+
+    // SHAYARI: Next
+    var btnShayariNext = $('btn-shayari-next');
+    if (btnShayariNext) {
+        btnShayariNext.addEventListener('click', function() {
+            transition('RECORD_SCREEN');
+        });
+    }
+
+    // RECORD: Next
+    var btnRecordNext = $('btn-record-next');
+    if (btnRecordNext) {
+        btnRecordNext.addEventListener('click', function() {
+            if (state.mediaDetected) {
+                transition('MEME_SCREEN');
+            } else if (state.memoryGalleryDetected) {
+                transition('MEMORY_SCREEN');
+            } else {
+                transition('CASE_CLOSED_SCREEN');
+            }
+        });
+    }
+
+    // MEME: Next
+    var btnMemeNext = $('btn-meme-next');
+    if (btnMemeNext) {
+        btnMemeNext.addEventListener('click', function() {
+            if (state.memoryGalleryDetected) {
+                transition('MEMORY_SCREEN');
+            } else {
+                transition('CASE_CLOSED_SCREEN');
+            }
+        });
+    }
+
+    // MEMORY: Next
+    var btnMemoryNext = $('btn-memory-next');
+    if (btnMemoryNext) {
+        btnMemoryNext.addEventListener('click', function() {
+            transition('CASE_CLOSED_SCREEN');
+        });
+    }
+
+    // TEST MODE: T key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'T' || e.key === 't') {
+            state.yesCount = 10;
+            var oldState = states[state.currentScreen];
+            if (oldState && oldState.exit) oldState.exit();
+            clearAllTimers();
+            state.currentScreen = 'SUCCESS_SCREEN';
+            states.SUCCESS_SCREEN.skipToSuccess();
+        }
+    });
+}
+
+// ==================== INITIALIZATION ====================
+function init() {
+    createParticles();
+    detectMedia();
+    detectMemories();
+    setupNoButtonEscape();
+    initEvents();
+    transition('SCAN_SCREEN');
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 })();
