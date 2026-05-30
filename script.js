@@ -17,7 +17,9 @@
         noCount: 0,
         angerLevel: 0.5,
         complimentsShown: [],
-        loadingInterval: null
+        loadingInterval: null,
+        miniConfettiTimeout: null,
+        rafPending: false
     };
 
     // ==================== CONSTANTS ====================
@@ -65,10 +67,10 @@
         '\u{1F97A} Come on yaar.',
         '\u{1F4E2} Brother sadness detected.',
         '\u{26A0}\u{FE0F} Forgiveness required.',
-        '\u{1F62D} You would do this to your brother?',
-        '\u{1F614} Think again 1/5 Footiya.',
-        '\u{1F6AB} Error 404: Rejection not found.',
-        '\u{1F91D} Sibling bond too strong.'
+        '\u{1F494} Heart damage increasing.',
+        '\u{1F62C} Stubbornness level: expert.',
+        '\u{1F6A8} Critical brother alert!',
+        '\u{1F4A3} Apology system overloading.'
     ];
 
     var ADVANCED_LOADING_MESSAGES = [
@@ -105,6 +107,19 @@
         screens.forEach(function (screen) {
             screen.classList.remove('active');
         });
+
+        // Clear confetti container on every screen transition to prevent DOM accumulation
+        var confettiContainer = getElement('confetti-container');
+        if (confettiContainer) {
+            confettiContainer.innerHTML = '';
+        }
+
+        // Cancel any pending mini-confetti cleanup timeout
+        if (state.miniConfettiTimeout) {
+            clearTimeout(state.miniConfettiTimeout);
+            state.miniConfettiTimeout = null;
+        }
+
         var target = getElement(screenId);
         if (target) {
             // Small delay for transition effect
@@ -209,6 +224,13 @@
         // Small confetti burst for yes-level completions
         var container = getElement('confetti-container');
         if (!container) return;
+
+        // Cancel any pending cleanup timeout before creating new confetti
+        if (state.miniConfettiTimeout) {
+            clearTimeout(state.miniConfettiTimeout);
+            state.miniConfettiTimeout = null;
+        }
+
         container.innerHTML = '';
         var colors = ['#4ade80', '#facc15', '#60a5fa', '#f472b6'];
         for (var i = 0; i < 20; i++) {
@@ -224,8 +246,9 @@
             container.appendChild(piece);
         }
         // Clean up after animation
-        setTimeout(function () {
+        state.miniConfettiTimeout = setTimeout(function () {
             container.innerHTML = '';
+            state.miniConfettiTimeout = null;
         }, 4000);
     }
 
@@ -387,7 +410,8 @@
             fill.style.background = color;
         }
         if (val) val.textContent = state.angerLevel + '/5';
-        if (msg) msg.textContent = NO_MESSAGES[Math.min(state.noCount - 1, NO_MESSAGES.length - 1)];
+        // Cycle through NO_MESSAGES using modulo to avoid identical feedback plateau
+        if (msg) msg.textContent = NO_MESSAGES[(state.noCount - 1) % NO_MESSAGES.length];
 
         // Change emoji based on anger
         if (emoji) {
@@ -537,33 +561,52 @@
         if (!grid) return;
         grid.innerHTML = '';
 
+        var formats = ['gif', 'jpg', 'png', 'webp'];
+
         for (var i = 1; i <= 5; i++) {
             var item = document.createElement('div');
             item.className = 'gallery-item';
 
-            var img = document.createElement('img');
-            img.alt = 'Memory ' + i + ' with 1/5 Footiya';
-            img.src = 'images/memory' + i + '.jpg';
+            // Use multi-format fallback pattern (same as loadMeme)
+            (function (itemEl, idx) {
+                var loaded = false;
 
-            // Create closure for error handling
-            (function (imgEl, itemEl, idx) {
-                imgEl.addEventListener('error', function () {
-                    // Show placeholder instead
-                    var placeholder = document.createElement('div');
-                    placeholder.className = 'gallery-placeholder';
-                    placeholder.textContent = '\u{1F4F7}';
-                    itemEl.replaceChild(placeholder, imgEl);
-                });
-            })(img, item, i);
+                function tryFormat(fmtIndex) {
+                    if (fmtIndex >= formats.length) {
+                        // Show placeholder instead
+                        var placeholder = document.createElement('div');
+                        placeholder.className = 'gallery-placeholder';
+                        placeholder.textContent = '\u{1F4F7}';
+                        itemEl.insertBefore(placeholder, itemEl.firstChild);
+                        return;
+                    }
 
-            item.appendChild(img);
+                    var img = document.createElement('img');
+                    img.alt = 'Memory ' + idx + ' with 1/5 Footiya';
+                    img.src = 'images/memory' + idx + '.' + formats[fmtIndex];
 
-            // Security: contenteditable for caption editing, no script injection risk
-            // since we use textContent for initial value
-            var caption = document.createElement('div');
+                    img.addEventListener('load', function () {
+                        if (!loaded) {
+                            loaded = true;
+                            itemEl.insertBefore(img, itemEl.firstChild);
+                        }
+                    });
+
+                    img.addEventListener('error', function () {
+                        if (!loaded) {
+                            tryFormat(fmtIndex + 1);
+                        }
+                    });
+                }
+
+                tryFormat(0);
+            })(item, i);
+
+            // Security: Use <input> element instead of contenteditable div to prevent XSS
+            var caption = document.createElement('input');
             caption.className = 'gallery-caption';
-            caption.setAttribute('contenteditable', 'true');
-            caption.textContent = 'Memory ' + i + ' - Click to edit caption';
+            caption.type = 'text';
+            caption.value = 'Memory ' + i + ' - Click to edit caption';
             item.appendChild(caption);
 
             grid.appendChild(item);
@@ -579,53 +622,58 @@
         var isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
         if (!isMobile) {
-            // Desktop: mouse proximity detection
+            // Desktop: mouse proximity detection with rAF throttle
             document.addEventListener('mousemove', function (e) {
                 if (state.currentScreen !== 'screen-no-flow') return;
-                var btn = getElement('btn-no-reject');
-                if (!btn) return;
+                if (state.rafPending) return;
+                state.rafPending = true;
+                requestAnimationFrame(function () {
+                    state.rafPending = false;
+                    var btn = getElement('btn-no-reject');
+                    if (!btn) return;
 
-                var rect = btn.getBoundingClientRect();
-                var btnCenterX = rect.left + rect.width / 2;
-                var btnCenterY = rect.top + rect.height / 2;
-                var distX = e.clientX - btnCenterX;
-                var distY = e.clientY - btnCenterY;
-                var distance = Math.sqrt(distX * distX + distY * distY);
+                    var rect = btn.getBoundingClientRect();
+                    var btnCenterX = rect.left + rect.width / 2;
+                    var btnCenterY = rect.top + rect.height / 2;
+                    var distX = e.clientX - btnCenterX;
+                    var distY = e.clientY - btnCenterY;
+                    var distance = Math.sqrt(distX * distX + distY * distY);
 
-                // If cursor is within 80px of the button, move it away
-                if (distance < 80) {
-                    var moveX = 0;
-                    var moveY = 0;
+                    // If cursor is within 80px of the button, move it away
+                    if (distance < 80) {
+                        var moveX = 0;
+                        var moveY = 0;
 
-                    // Move away from cursor
-                    if (distX !== 0 || distY !== 0) {
-                        var angle = Math.atan2(distY, distX);
-                        moveX = -Math.cos(angle) * 120;
-                        moveY = -Math.sin(angle) * 120;
-                    } else {
-                        moveX = (Math.random() - 0.5) * 200;
-                        moveY = (Math.random() - 0.5) * 200;
+                        // Move away from cursor
+                        if (distX !== 0 || distY !== 0) {
+                            var angle = Math.atan2(distY, distX);
+                            moveX = -Math.cos(angle) * 120;
+                            moveY = -Math.sin(angle) * 120;
+                        } else {
+                            moveX = (Math.random() - 0.5) * 200;
+                            moveY = (Math.random() - 0.5) * 200;
+                        }
+
+                        // Keep button within viewport
+                        var newLeft = rect.left + moveX;
+                        var newTop = rect.top + moveY;
+                        var maxX = window.innerWidth - rect.width - 10;
+                        var maxY = window.innerHeight - rect.height - 10;
+                        newLeft = Math.max(10, Math.min(maxX, newLeft));
+                        newTop = Math.max(10, Math.min(maxY, newTop));
+
+                        // Calculate transform from original position
+                        var origRect = btn.parentElement.getBoundingClientRect();
+                        var origLeft = origRect.left + origRect.width / 2 - rect.width / 2;
+                        var origTop = origRect.top + origRect.height - rect.height;
+
+                        btn.style.position = 'fixed';
+                        btn.style.left = newLeft + 'px';
+                        btn.style.top = newTop + 'px';
+                        btn.style.zIndex = '50';
+                        btn.style.margin = '0';
                     }
-
-                    // Keep button within viewport
-                    var newLeft = rect.left + moveX;
-                    var newTop = rect.top + moveY;
-                    var maxX = window.innerWidth - rect.width - 10;
-                    var maxY = window.innerHeight - rect.height - 10;
-                    newLeft = Math.max(10, Math.min(maxX, newLeft));
-                    newTop = Math.max(10, Math.min(maxY, newTop));
-
-                    // Calculate transform from original position
-                    var origRect = btn.parentElement.getBoundingClientRect();
-                    var origLeft = origRect.left + origRect.width / 2 - rect.width / 2;
-                    var origTop = origRect.top + origRect.height - rect.height;
-
-                    btn.style.position = 'fixed';
-                    btn.style.left = newLeft + 'px';
-                    btn.style.top = newTop + 'px';
-                    btn.style.zIndex = '50';
-                    btn.style.margin = '0';
-                }
+                });
             });
         } else {
             // Mobile: jump on touchstart near button
