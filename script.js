@@ -219,6 +219,10 @@ states.YES_FLOW = {
         trackTimeout(setTimeout(function() {
             complimentCard.classList.add('hidden');
             state.yesCount++;
+            // Start preloading video at level 5 so it's ready by the time we need it
+            if (state.yesCount >= 5 && state.mediaDetected) {
+                preloadVideo();
+            }
             if (state.yesCount >= 10) {
                 transition('SUCCESS_SCREEN');
             } else {
@@ -460,26 +464,69 @@ states.RECORD_SCREEN = {
     }
 };
 
+// ==================== VIDEO PRELOADER ====================
+var preloadedVideo = null;
+
+function preloadVideo() {
+    if (preloadedVideo) return; // Already preloading
+    if (!state.mediaDetected || (state.mediaDetected !== 'mp4' && state.mediaDetected !== 'webm')) return;
+    preloadedVideo = document.createElement('video');
+    preloadedVideo.setAttribute('preload', 'auto');
+    preloadedVideo.setAttribute('playsinline', '');
+    preloadedVideo.setAttribute('webkit-playsinline', '');
+    preloadedVideo.playsInline = true;
+    preloadedVideo.preload = 'auto';
+    var source = document.createElement('source');
+    source.src = 'images/final-meme.' + state.mediaDetected;
+    source.type = 'video/' + state.mediaDetected;
+    preloadedVideo.appendChild(source);
+    preloadedVideo.load();
+}
+
 // ==================== MEME_SCREEN ====================
 states.MEME_SCREEN = {
+    activeVideo: null,
     enter: function() {
         switchScreen('screen-meme');
         this.renderMedia();
     },
     render: function() {},
-    exit: function() {},
+    exit: function() {
+        // Stop video immediately when leaving this screen
+        if (this.activeVideo) {
+            this.activeVideo.pause();
+            this.activeVideo.currentTime = 0;
+            this.activeVideo.removeAttribute('src');
+            this.activeVideo.load(); // Forces release of media resources
+            this.activeVideo = null;
+        }
+        // Clear the container
+        var screen = $('screen-meme');
+        var container = $q('.meme-container', screen);
+        if (container) container.textContent = '';
+    },
     renderMedia: function() {
         var screen = $('screen-meme');
         var container = $q('.meme-container', screen);
         container.textContent = '';
         if (state.mediaDetected === 'mp4' || state.mediaDetected === 'webm') {
-            var video = document.createElement('video');
-            // Set attributes for playback
+            var video;
+            // Use preloaded video if available
+            if (preloadedVideo) {
+                video = preloadedVideo;
+                preloadedVideo = null;
+            } else {
+                video = document.createElement('video');
+                var source = document.createElement('source');
+                source.src = 'images/final-meme.' + state.mediaDetected;
+                source.type = 'video/' + state.mediaDetected;
+                video.appendChild(source);
+            }
+            // Set playback attributes
             video.setAttribute('autoplay', '');
             video.setAttribute('loop', '');
             video.setAttribute('playsinline', '');
             video.setAttribute('webkit-playsinline', '');
-            video.setAttribute('preload', 'auto');
             video.setAttribute('controls', '');
             // Properties
             video.autoplay = true;
@@ -491,20 +538,15 @@ states.MEME_SCREEN = {
             video.style.width = '100%';
             video.style.borderRadius = '12px';
             video.style.display = 'block';
-            var source = document.createElement('source');
-            source.src = 'images/final-meme.' + state.mediaDetected;
-            source.type = 'video/' + state.mediaDetected;
-            video.appendChild(source);
             container.appendChild(video);
+            this.activeVideo = video;
             // Try to play with audio (works because user just clicked NEXT button)
-            video.load();
             var playPromise = video.play();
             if (playPromise !== undefined) {
                 playPromise.catch(function() {
                     // If browser blocks unmuted autoplay, start muted then unmute
                     video.muted = true;
                     video.play().then(function() {
-                        // Successfully playing muted, unmute after short delay
                         video.muted = false;
                     }).catch(function() {});
                 });
